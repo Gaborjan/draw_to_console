@@ -4,7 +4,7 @@ public class Mozi {
 	public static void main(String[] args) {
 		int[] terem1Szekek = {10,10,10,15,15,15,15,15,15,25};
 		int[] terem2Szekek = {10,10,10,20,20,20,30,30,40,40};
-		Terem Terem1 = new Terem(10,terem1Szekek,"JÁVOR PÁL TEREM",1990,"CSILLAGOK HÁBORÚJA");
+		Terem Terem1 = new Terem(10,terem1Szekek,"JÁVOR PÁL TEREM",1990,"CSILLAGOK HÁBORÚJA I.");
 		Terem1.kiir();
 		Terem1.foglal(5, 5);
 		Terem1.foglal(1, 1);

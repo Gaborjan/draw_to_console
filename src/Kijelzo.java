@@ -69,7 +69,7 @@ public class Kijelzo {
 		aktOszlop = mOszlop;
 	}
 
-	/* Megrajzol egy adott hosszúságú sort, adott karakterbõl */
+	/* Megrajzol egy adott hosszÃºsÃ¡gÃº sort, adott karakterbÅ‘l */
 	public void sorRajzol(int sor, int oszlop, int hossz, char mibol) {
 		for (int i = 0; i < hossz; i++)
 			tartalom[sor][oszlop + i] = mibol;
@@ -80,9 +80,9 @@ public class Kijelzo {
 			tartalom[sor + i][oszlop] = mibol;
 	}
 
-	/* Keretet rajzol, adott karakterbõl adott sorral és oszloppal */
+	/* Keretet rajzol, adott karakterbÅ‘l adott sorral Ã©s oszloppal */
 	public void keret(int sor, int oszlop, char tipus, boolean arnyek, String fejlec) {
-		// Rajzoló karakterek definiálása
+		// RajzolÃ³ karakterek definiÃ¡lÃ¡sa
 		final char BFS = '\u250c';
 		final char JFS = '\u2510';
 		final char VS = '\u2500';
@@ -96,9 +96,9 @@ public class Kijelzo {
 		final char BAD = '\u255A';
 		final char JAD = '\u255D';
 		final char ARNY = '\u2591';
-		// Aktuális rajzoló karakterek, 'típus' paramétertõl függõen.
+		// AktuÃ¡lis rajzolÃ³ karakterek, 'tÃ­pus' paramÃ©tertÅ‘l fÃ¼ggÅ‘en.
 		char bfA = ' ', jfA = ' ', vA = ' ', fA = ' ', jaA = ' ', baA = ' ';
-		// Rajzoló karakterek beállítása
+		// RajzolÃ³ karakterek beÃ¡llÃ­tÃ¡sa
 		if (Character.toUpperCase(tipus) == 'S') {
 			bfA = BFS;
 			jfA = JFS;
@@ -117,27 +117,27 @@ public class Kijelzo {
 		int mSor, mOszlop;
 		mSor = aktSor;
 		mOszlop = aktOszlop;
-		irXY(mSor, mOszlop, bfA + ""); // Bal felsõ sarok
-		sorRajzol(mSor, mOszlop + 1, oszlop - 2, vA); // Elsõ sor, keret teteje
-		irXY(mSor, mOszlop + oszlop - 1, jfA + ""); // Jobb felsõ sarok
+		irXY(mSor, mOszlop, bfA + ""); // Bal felsÅ‘ sarok
+		sorRajzol(mSor, mOszlop + 1, oszlop - 2, vA); // ElsÅ‘ sor, keret teteje
+		irXY(mSor, mOszlop + oszlop - 1, jfA + ""); // Jobb felsÅ‘ sarok
 		oszlopRajzol(mOszlop, mSor + 1, fA, sor - 1);
 		oszlopRajzol(mOszlop + oszlop - 1, mSor + 1, fA, sor - 1);
 		if (arnyek)
 			oszlopRajzol(mOszlop + oszlop, mSor + 1, ARNY, sor);
-		irXY(mSor + sor - 1, mOszlop, baA + ""); // bal alsó sarok
+		irXY(mSor + sor - 1, mOszlop, baA + ""); // bal alsÃ³ sarok
 		poz(mSor + sor - 1, mOszlop + 1);
-		sorRajzol(mSor + sor - 1, mOszlop + 1, oszlop - 2, vA); // utolsó sor, keret alja
-		if (arnyek) {// jobb alsó sarok
+		sorRajzol(mSor + sor - 1, mOszlop + 1, oszlop - 2, vA); // utolsÃ³ sor, keret alja
+		if (arnyek) {// jobb alsÃ³ sarok
 			irXY(mSor + sor - 1, mOszlop + oszlop - 1, jaA + ""); // Sarok
-			irXY(mSor + sor - 1, mOszlop + oszlop, ARNY + ""); // Mögé az árnyék
+			irXY(mSor + sor - 1, mOszlop + oszlop, ARNY + ""); // MÃ¶gÃ© az Ã¡rnyÃ©k
 		} else {
 			irXY(mSor + sor - 1, mOszlop + oszlop - 1, jaA + "");
 		}
-		if (arnyek) { // Ha kell, árnyék rajzolás
+		if (arnyek) { // Ha kell, Ã¡rnyÃ©k rajzolÃ¡s
 			poz(mSor + sor, mOszlop + 2);
-			sorRajzol(mSor + sor, mOszlop + 2, oszlop - 1, ARNY); // Ánryék megrajzolása
+			sorRajzol(mSor + sor, mOszlop + 2, oszlop - 1, ARNY); // ÃnryÃ©k megrajzolÃ¡sa
 		}
-		//Fejléc
+		//FejlÃ©c
 		if (fejlec.length()>0) {
 			if (Character.toUpperCase(tipus)=='S') 
 				fejlec='\u2524'+fejlec+'\u251C';

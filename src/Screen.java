@@ -13,22 +13,22 @@ public class Screen {
 		konzol.ir("HELLO");
 		konzol.kiir();
 		konzol.torol();
-		konzol.keret(24, 79, 'S', true," FEJLÉC ");
+		konzol.keret(24, 79, 'S', true," FEJLÃ‰C ");
 		konzol.poz(3, 3);
-		konzol.keret(5, 65, 'd', true,"Jó HOSSZÚ FEJLÉC SZÖVEG");
+		konzol.keret(5, 65, 'd', true,"JÃ“ HOSSZÃš FEJLÃ‰C SZÃ–VEG");
 		konzol.poz(15, 40);
 		konzol.keret(5, 20, 'S', true,"PONT");
 		konzol.poz(10, 10);
-		konzol.keret(10, 20, 'S', true,"MENÜ");
-		konzol.irXY(12, 12, "1. Nehézség");
-		konzol.irXY(13, 12, "2. Új játék");
-		konzol.irXY(14, 12, "3. Kilépés");
+		konzol.keret(10, 20, 'S', true,"MENÃœ");
+		konzol.irXY(12, 12, "1. MenÃ¼pont 1");
+		konzol.irXY(13, 12, "2. MenÃ¼pont 2");
+		konzol.irXY(14, 12, "3. KilÃ©pÃ©s");
 		/*
 		 * konzol.sorRajzol('*', 80); konzol.poz(24, 0); konzol.sorRajzol('*', 80);
 		 */
 		konzol.poz(10, 70);
 		konzol.ir("HELLO");
-		konzol.irXY(24, 70, "Jánvári Gábor");
+		konzol.irXY(24, 70, "JÃ¡nvÃ¡ri GÃ¡bor");
 		konzol.kiir();
 		konzol.torol();
 		/*for (int i=0;i<79;i++) {

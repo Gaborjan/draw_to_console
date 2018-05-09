@@ -16,7 +16,7 @@ public class Mozi {
 		Terem1.helytorol(1, 1);
 		Terem1.kiir();
 		System.out.println(String.format("%,6.0f",Terem1.getBevetel())+" Ft");
-		Terem Terem2 = new Terem(10,terem2Szekek,"JOHN WILLIAMS TEREM",1590,"VISSZA A JŐVŐBE II.");
+		Terem Terem2 = new Terem(10,terem2Szekek,"JOHN WILLIAMS TEREM",1590,"VISSZA A JŐVŐBE III.");
 		Terem2.kiir();
 		Terem2.foglal(5, 5);
 		Terem2.foglal(1, 1);

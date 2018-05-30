@@ -15,8 +15,10 @@ public class Terem extends Kijelzo {
 	int teremOszlop=0;
 	
 	public Terem(int sor, int[] szekekSzama, String tNev, double jAr, String fCim) {
-		super(((sor*2)+3),(int) (szekekSzama[sor-1]*2.8)); //Létrehozunk egy "Kijelzot"
-		teremSor=(sor*2)+3; //A sorok és oszlopok alapján hozzuk létre a Kijelző méreteit
+		super(((sor*2)+7),(int) (szekekSzama[sor-1]*2.8)); //Létrehozunk egy "Kijelzot"
+		if (sor>=10) teremSor=(sor*2)+3;//A sorok és oszlopok alapján hozzuk létre a Kijelző méreteit
+		else 
+			teremSor=(sor*2)+7; 
 		teremOszlop=(int) (szekekSzama[sor-1]*2.8);
 		filmCim=fCim;
 		jegyAr=jAr;
@@ -58,7 +60,7 @@ public class Terem extends Kijelzo {
 		}
 		this.irXY(teremSor-2,3,"FOGLALT: "+foglalt);
 		this.irXY(teremSor-2,18,"SZABAD: "+szabad);
-		this.irXY(teremSor-4,3,"JEGY�R: "+String.format("%6.0f", jegyAr)+" Ft");	
+		this.irXY(teremSor-4,3,"JEGYÁR: "+String.format("%6.0f", jegyAr)+" Ft");	
 	}
 	
 	public void foglal(int sor,int oszlop) {

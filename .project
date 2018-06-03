@@ -14,11 +14,4 @@
 	<natures>
 		<nature>org.eclipse.jdt.core.javanature</nature>
 	</natures>
-	<linkedResources>
-		<link>
-			<name>sajat_eljarasok</name>
-			<type>2</type>
-			<location>C:/Angster_Java/sajat_eljarasok</location>
-		</link>
-	</linkedResources>
 </projectDescription>

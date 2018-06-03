@@ -1,9 +1,9 @@
 public class Kijelzo {
 	private static final int MAXOSZLOP	 = 200;
 	private static final int MAXSOR		 = 50;
-	private char			  tartalom[][];
-	private int				  aktSor		 = 0, aktOszlop = 0;
-	private int				  kijelzoSor = 0, kijelzoOszlop = 0;
+	private char			  tartalom[][]; // A kijelző "tartalma"
+	private int				  aktSor		 = 0, aktOszlop = 0; // A képernyő kurzorának poziciója
+	private int				  kijelzoSor = 0, kijelzoOszlop = 0; // Ennyi sorból és oszlopból áll a kijelző
 
 	public Kijelzo() {
 		
@@ -28,6 +28,7 @@ public class Kijelzo {
 
 	}
 
+	//A tárolt kijelző kiírása konzolra
 	public void kiir() {
 		for (int i = 0; i < kijelzoSor; i++) {
 			for (int j = 0; j < kijelzoOszlop; j++)
@@ -35,7 +36,8 @@ public class Kijelzo {
 			System.out.println();
 		}
 	}
-
+	
+	//A tárolt kijelző törlése = szóközzel feltöltése, kurzort a bal felső sarokba állítja
 	public void torol() {
 		for (int i = 0; i < kijelzoSor; i++)
 			for (int j = 0; j < kijelzoOszlop; j++)
@@ -43,7 +45,8 @@ public class Kijelzo {
 		aktSor = 0;
 		aktOszlop = 0;
 	}
-
+	
+	//A megadott sor, megadott oszlop poziciójába visszi a "kurzort"
 	public void poz(int sor, int oszlop) {
 		if (sor < kijelzoSor && sor >= 0)
 			aktSor = sor;
@@ -51,6 +54,7 @@ public class Kijelzo {
 			aktOszlop = oszlop;
 	}
 
+	//Az aktuális kurzor pozicíóba kiírja a megadott szöveget
 	public void ir(String szoveg) {
 		int o = aktOszlop;
 		int i = 0;
@@ -61,26 +65,36 @@ public class Kijelzo {
 		}
 	}
 
+	//A megadott pozicióba kiírja az megadott szöveget, a kurzor pozicíója nem változik
 	public void irXY(int sor, int oszlop, String szoveg) {
-		int mSor = aktSor, mOszlop = aktOszlop;
+		int mSor = aktSor, mOszlop = aktOszlop; // kurzor helyének eltárolása
 		poz(sor, oszlop);
 		ir(szoveg);
+		//kurzor helyének visszaállítása
 		aktSor = mSor;
 		aktOszlop = mOszlop;
 	}
 
-	/* Megrajzol egy adott hosszúságú sort, adott karakterből */
+	/* Megrajzol egy adott hosszúságú sort, adott karakterből, megadott sor/oszloptól,  megadott hosszban
+	 * a kurzor poziciója nem változik.*/
 	public void sorRajzol(int sor, int oszlop, int hossz, char mibol) {
 		for (int i = 0; i < hossz; i++)
 			tartalom[sor][oszlop + i] = mibol;
 	}
 
+	/* Megrajzol egy adott hosszúságú oszlopot, adott karakterből, megadott sor/oszloptól,  megadott hosszban
+	 * a kurzor poziciója nem változik.*/
 	public void oszlopRajzol(int oszlop, int sor, char mibol, int hossz) {
 		for (int i = 0; i < hossz; i++)
 			tartalom[sor + i][oszlop] = mibol;
 	}
 
-	/* Keretet rajzol, adott karakterből adott sorral és oszloppal */
+	/* Keretet rajzol az aktuális kurzor poziciótól, kurzor pozicíója nem változik.
+	 * sor,oszlop: a keretnek ennyi sor és oszlopa lesz
+	 * tipus: 		S vagy D, egy vonalas, dupla vonalas keret
+	 * arnyek: 		ha igaz akkor árnyékot is rajzol a keretnek
+	 * fejléc: 		fejléc szöveg a keret tetejére
+	 */
 	public void keret(int sor, int oszlop, char tipus, boolean arnyek, String fejlec) {
 		// Rajzoló karakterek definiálása
 		final char BFS = '\u250c';
@@ -114,6 +128,7 @@ public class Kijelzo {
 			baA = BAD;
 			jaA = JAD;
 		}
+		//Kurzor pozició mentése
 		int mSor, mOszlop;
 		mSor = aktSor;
 		mOszlop = aktOszlop;
@@ -145,10 +160,20 @@ public class Kijelzo {
 				fejlec='\u2561'+fejlec+'\u255E';
 			irXY(mSor,(int) (mOszlop+((oszlop-fejlec.length())/2)),fejlec);
 		}
-		
+		//Kurzor visszaállítása
 		aktSor = mSor;
 		aktOszlop = mOszlop;
 		poz(aktSor, aktOszlop);
 	}
 
-}
+	//Kurzor aktuális sora
+	public int getAktSor() {
+		return aktSor;
+	}
+
+	//Kurzor aktuális oszlopa
+	public int getAktOszlop() {
+		return aktOszlop;
+	}
+	
+} //class Kijelzo

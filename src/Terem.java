@@ -19,6 +19,7 @@ public class Terem extends Kijelzo {
 	private int teremSor=0; //Terem sorainak a száma ~ kijelző méret sor
 	private int teremOszlop=0; // Terem oszlopainak a száma ~ kijelző méret oszlop
 	
+	//Konstruktor
 	public Terem(int sor, int[] szekekSzama, String tNev, int jAr, String fCim) {
 		super(((sor*2)+7),(int) (szekekSzama[sor-1]*MERETARANY)); //Létrehozunk egy "Kijelzot"
 		if (sor>=10) teremSor=(sor*2)+3;//A sorok és oszlopok alapján hozzuk létre a Kijelző méreteit
@@ -144,6 +145,7 @@ public class Terem extends Kijelzo {
 		return filmCim;
 	}
 	
+	//Visszaadja hány hely van a megadott sorban
 	public int getSorHelyDarab(int sor) {
 		return helyek[sor-1].length;  
 	}
@@ -153,5 +155,13 @@ public class Terem extends Kijelzo {
 	public boolean getHelyFoglalt(int sor, int oszlop) {
 	   return this.helyek[sor-1][oszlop-1]==FOGLALT; 
 	}
+	
+	//Terem sorainak számát adja vissza
+   public int getTeremSor() {
+      return helyek.length;
+   }
+	
+ 
+	
 } 
 

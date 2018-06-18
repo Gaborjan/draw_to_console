@@ -5,9 +5,10 @@ import extra.*;
 
 public class Mozi {
 	static Terem[] moziTermek; //Ebben a tömbben tároljuk a mozitermeket
-	static final String FOMENUPONTOK[] = {"1. Fájlműveletek","2. Foglalás","3. Visszavét","4. Teremállapot","0. Program vége"};
-	static final String FAJLMUVELETEK[] = {"1. Inicializálás", "2. Foglalás mentés","3. Foglalás betöltés","0. FŐMENÜ"};
+	static final String FOMENUPONTOK[] = {"1. Fájlműveletek","2. Foglalás","3. Lemondás","4. Teremállapot","0. Program vége"};
+	static final String FAJLMUVELETEK[] = {"1. Műsorbetöltés", "2. Foglalások kimentése","3. Foglalások betöltése","0. FŐMENÜ"};
 	static boolean inicializalasOk = false; //Akkor lesz igaz, ha a létrehozzuk a termeket a mozi_betolt eljárással;
+	static double kezKtg=0.1; // Lemondásnál ennyi kezelési költséget vonunk le a lemondott jegyek árából
 		
 	public static void main(String[] args) {
 		int menuP=0;
@@ -22,17 +23,17 @@ public class Mozi {
    					do {
    						menuP=Menu.egyszeruMenu(FOMENUPONTOK[0].substring(3, FOMENUPONTOK[0].length()),FAJLMUVELETEK, 4);
    						switch (menuP) {
-      						case 1: // Fájlműveletek/Inicializálás
+      						case 1: // Fájlműveletek/Műsorbetöltés
       						{
       							inicializalas();
       							break;
       						}
-      						case 2: // Fájlműveletek/Foglalás mentés
+      						case 2: // Fájlműveletek/Foglalások kimentése
       						{
       						
       							break;
       						}
-      						case 3:break; // Fájlműveletek/Foglalás betöltés
+      						case 3:break; // Fájlműveletek/Foglalások betöltése
       					} // fájlműveletek switch
    					} while (menuP!=0); //Amíg a Fájlműveletekből nem lépünk ki
    					menuP=99; // Így nem lépünk ki a Főmenűből
@@ -51,7 +52,7 @@ public class Mozi {
    				menuP=99;
    				break;
    			} // Foglalás case ág
-   			case 3: // Főmenü/Visszavét
+   			case 3: // Főmenü/Lemondás
    			{
    			   if (inicializalasOk ) {
                   visszavet();
@@ -184,6 +185,7 @@ public class Mozi {
       int k; // segedváltozó
       char fEredmeny='N'; //segédváltozó, a foglalás megfelel, nem felel meg, megszakítás
       boolean sikeresFoglalas=false; // Ha a foglalás teljesen végigment, akkor lesz igazra állítva, egyébként hamis
+      boolean foglalte; //Adatbekéréskor ellenőrizzük egy adott hely foglalt-e már esetleg
       
       for (int i=0;i<filmek.length-1;i++) // A filmválasztás menü menüpontjainak előállítása
          filmek[i]=(i+1)+". "+moziTermek[i].getFilmCim()+"___"+moziTermek[i].getTeremNev()+"___"+moziTermek[i].getJegyAr()+ " Ft";
@@ -196,14 +198,22 @@ public class Mozi {
                jDb=extra.Console.readInt("Hány jegyet kér? (0=Kilépés)");
                if (jDb>0)
                   {
-                     jSor=extra.Console.readInt("Hanyadik sorba kéri? (0=Kilépés)  "); // Nem ellenőrizzük érvényes adatot adnak-e meg
+                     jSor=Menu.egesz_Beolvas("Hányadik sorba kéri? (Max.: "+moziTermek[menuP-1].getTeremSor()+" Kilépés = '0') ",0,moziTermek[menuP-1].getTeremSor(),"Hibás adat!");
                      if (jSor>0)
                         {
                            System.out.println("Adja meg a helyek számát a sorban! (0=Kilépés)  "); 
                            k=0; //ebben tároljuk hányadik jegynél járunk
                            do { // ciklus amíg nem szakítja meg a foglalást illetve amíg nem kértük be az összes helyet
-                              //Csak érvényes adatot fogadunk el, figyeljük hány hely van a sorban, de nem nézzük foglalt-e már
-                              jH=Menu.egesz_Beolvas("Kérem a "+(k+1)+". jegy helyét:  ", 0, moziTermek[menuP-1].getSorHelyDarab(jSor), "Hibás adat!");
+                              //Csak érvényes adatot fogadunk el, figyeljük hány hely van a sorban, de nem nézzük kétszer megadják-e ugyanazt a helyet
+                              do {
+                                 jH=Menu.egesz_Beolvas("Kérem a "+(k+1)+". jegy helyét (Max.:"+moziTermek[menuP-1].getSorHelyDarab(jSor)+"): ", 0, moziTermek[menuP-1].getSorHelyDarab(jSor), "Hibás adat!");
+                                 if (jH!=0) { // Ha nem lépünk ki ellenőrizzuk, hogy a megadott hely esetleg foglalt-e már
+                                    foglalte=moziTermek[menuP-1].getHelyFoglalt(jSor, jH);
+                                    if (foglalte)
+                                       System.out.println(" ***** A "+jSor+". SOR "+jH+" . HELYE MÁR FOGLALT! ***** ");
+                                 }
+                                 else foglalte=false; // 0-t kaptunk, így kilépünk a bekérő ciklusból
+                              } while (foglalte);
                               if (jH!=0) {
                                  k++; // 
                                  jegySzek.add(jH); // eltároljuk a foglalt szék számát
@@ -246,9 +256,9 @@ public class Mozi {
                                           for (int i=1;i<=k;i++)
                                              moziTermek[menuP-1].elofoglaltorol(jSor, jegySzek.get(i-1)); 
                                           System.out.println();
-                                          System.out.println("---------------------");
-                                          System.out.println("Sikertelen fizetés miatt a foglalás sikertelen!");
-                                          System.out.println("---------------------");
+                                          System.out.println("-------------------");
+                                          System.out.println("Sikertelen fizetés!");
+                                          System.out.println("-------------------");
                                           menuP=0;
                                           continue; // Ciklus elejére ugrunk is ki is lépünk
                                        } 
@@ -318,29 +328,99 @@ public class Mozi {
 	static void visszavet() {
 	   int menuP=0;
       String filmek[] = new String[moziTermek.length+1]; // a filmválasztás menüpontjait tároljuk ebben a tömbben -> teremnév, filmcím és jegyár 
-      int jDb; //Foglalni kívánt jegyek száma
-      ArrayList<Integer> jegySzek = new ArrayList<Integer>(); // foglalni kívánt helyek a sorban
-      char tEredmeny='N'; //segédváltozó, a foglalás megfelel, nem felel meg, megszakítás
-      boolean sikeresTorles=false; // Ha a foglalás teljesen végigment, akkor lesz igazra állítva, egyébként hamis
-      
+      int lDb; //Lemondani kívánt jegyek száma
+      int lSor; //Lemondani kívánt jegyek sora
+      ArrayList<Integer> jegySzek = new ArrayList<Integer>(); // lemondani kívánt helyek a sorban
+      char lEredmeny='N'; //segédváltozó, a lemondás sikeresen megtörtént
+      boolean sikeresLemondas=false; // Ha a foglalás teljesen végigment, akkor lesz igazra állítva, egyébként hamis
+      int k; //segédváltozó
+      int lH; //segédváltozó
       for (int i=0;i<filmek.length-1;i++) // A filmválasztás menü menüpontjainak előállítása
          filmek[i]=(i+1)+". "+moziTermek[i].getFilmCim()+"___"+moziTermek[i].getTeremNev()+"___"+moziTermek[i].getJegyAr()+ " Ft";
-      filmek[moziTermek.length]="0. Visszavét megszakítása"; // Kell egy kilépés menüpont is
+      filmek[moziTermek.length]="0. Lemondás megszakítása"; // Kell egy kilépés menüpont is
       do { // Ciklus, míg ki nem lépünk filmválasztásból
-         menuP=Menu.egyszeruMenu("Visszavét, film választása",filmek, filmek.length); //Melyik filmre akarunk foglalni?
+         menuP=Menu.egyszeruMenu("Lemondás, film választása",filmek, filmek.length); //Melyik filmre volt a foglalás?
          if (menuP>0) {
-            while (tEredmeny=='N' && menuP>0) { //Ciklus, míg nem lépünk ki a film menüből vagy nem lett megszakítva valahol a foglalási folyamat
+            while (lEredmeny=='N' && menuP>0) { //Ciklus, míg nem lépünk ki a film menüből vagy nem lett megszakítva valahol a lemondási folyamat
                moziTermek[menuP-1].kiir(); // A választott termet megjelenítjük a választás megkönnyítésére
-               jDb=extra.Console.readInt("Hány jegyet kér? (0=Kilépés)");
-            } 
-         }
-      }
+               lSor=Menu.egesz_Beolvas("Hányadik sorba szól a jegy? (Max.: "+moziTermek[menuP-1].getTeremSor()+" Kilépés = '0') ",0,moziTermek[menuP-1].getTeremSor(),"Hibás adat!");
+               if (lSor!=0) { //Ha nem szakítjuk meg a lemondást
+                  lDb=extra.Console.readInt("Hány darab jegyet mond le a "+lSor+". sorban? (0=Kilépés) ");
+                  if (lDb!=0) {
+                     System.out.println("Adja meg a helyek számát a sorban! (0=Kilépés)  "); 
+                     k=0; //ebben tároljuk hányadik jegynél járunk
+                     do { // ciklus amíg nem szakítja meg a lemondást illetve amíg nem kértük be az összes helyet az adott sorban
+                        //Csak érvényes adatot fogadunk el, figyeljük hány hely van a sorban, de nem nézzük tényleg foglalt-e a hely, mert
+                        //elvileg ilyen nem fordulhat elő, hiszen ott a jegy a kezünkben.
+                        lH=Menu.egesz_Beolvas("Kérem a "+(k+1)+". jegy helyét (Max.:"+moziTermek[menuP-1].getSorHelyDarab(lSor)+"): ", 0, moziTermek[menuP-1].getSorHelyDarab(lSor), "Hibás adat!");
+                        if (lH!=0) {
+                           k++; // 
+                           jegySzek.add(lH); // eltároljuk a lemondott szék számát
+                        }
+                     } while (lH!=0 && k<lDb); 
+                     if (lH==0) { //ha megszakítottuk a lemondást a ciklus elejére ugrunk, ahol ki is lépünk
+                        menuP=0;
+                        continue;
+                     }
+                     else { // Megkaptunk minden adatot, jöhet a foglalás lemondása
+                        System.out.println("-------------------------");
+                        System.out.println("LEMONDÁSRA KERÜLŐ HELYEK:");
+                        System.out.println("-------------------------");
+                        System.out.println("Sor száma: "+lSor);
+                        System.out.println("Lemondott helyek: "+jegySzek);
+                        System.out.printf("Visszajáró összeg %,6.0f Ft",((lDb*moziTermek[menuP-1].getJegyAr())*(1-kezKtg)));
+                        System.out.println();
+                        do { // Rákérdezünk rendben vannak-e a helyek?
+                           lEredmeny=extra.Console.readChar("A megadott adatok helyesek? <I>gen <N>em <K>ilépés-lemondás megszakítása:  ");
+                           lEredmeny=Character.toUpperCase(lEredmeny);
+                        } while (lEredmeny!='N' && lEredmeny!='I' && lEredmeny!='K');
+                        if (lEredmeny=='N') { //Nem megfelelő adatok, ismét be fogjuk kérni őket
+                           jegySzek.clear();
+                        }
+                        else if (lEredmeny=='K') { // Kilépés, lemondás megszakítása, ciklus elejére ugrunk
+                           menuP=0;
+                           continue;
+                        }
+                        else { // A foglalás törölhető ténylegesen
+                           sikeresLemondas=true;
+                           for (int i=0;i<jegySzek.size();i++)
+                              moziTermek[menuP-1].helytorol(lSor,jegySzek.get(i));
+                           System.out.println("--------------------------------------");
+                           System.out.println("LEMONDÁS SIKERES, HELYEK FELSZABADÍTVA");
+                           System.out.println("--------------------------------------");
+                           System.out.println("Sor száma: "+lSor);
+                           System.out.println("Lemondott helyek: "+jegySzek);
+                           do { // Ellenőrzésképpen kér-e teremállapotot?
+                              lEredmeny=extra.Console.readChar("Teremállapot? <I>gen <N>em  ");
+                              lEredmeny=Character.toUpperCase(lEredmeny);
+                           } while (lEredmeny!='N' && lEredmeny!='I');
+                           if (lEredmeny=='I') { // kér teremállapotot
+                              moziTermek[menuP-1].kiir();
+                              extra.Console.pressEnter();
+                           }
+                           menuP=0; // Ciklus elejére lépünk és ki is ugrunk
+                           continue;
+                        } //Sikeres foglalás törlés ág
+                     } //Adatbekérés ág
+                  } //Lemondaandó helyekdarabszáma ág
+                  else { // Jegy darabszám megadásánál 0-t kaptunk, megszakítjuk a lemondást
+                     menuP=0;
+                     continue;
+                  }
+               } //Sor megadása ár
+               else { //A sor bekérésnél 0-t kaptunk, a ciklus elejére ugrunk és kilépünk
+                  menuP=0;
+                  continue;
+               }
+            } // Ciklus vége, amíg nem lépünk ki a menüből, vagy nem szakítjuk meg a lemondást 
+         } //Filmválasztó ág vége
+      } //Ciklus vége, filmválasztás
       while (menuP!=0); // Vissza a főmenübe, ha 0-t ad meg
-      if (!sikeresTorles) { // A foglalás valahol meg lett szakítva a folyamat során, így ekkor tájékoztatást adunk
+      if (!sikeresLemondas) { // A foglalás valahol meg lett szakítva a folyamat során, így ekkor tájékoztatást adunk
          System.out.println();
-         System.out.println("------------_---------");
-         System.out.println("Visszavét megszakítva!");
-         System.out.println("-------------_--------");
+         System.out.println("---------------------");
+         System.out.println("Lemondás megszakítva!");
+         System.out.println("---------------------");
          extra.Console.pressEnter();
       }
 	} // visszavét metódus

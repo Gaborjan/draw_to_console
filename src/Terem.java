@@ -4,6 +4,7 @@ public class Terem extends Kijelzo {
 	static final private int URESSOR=3; // vászon és első sor közötti sorok száma
 	static final private int VASZONSOR=3; //vászon helye
 	static final private char FOGLALT='X';
+	static final private char ELOFOGLALT='░';
 	static final private char SZABAD='*';
 	static final private double MERETARANY=2.8; //Arányszám a leghosszabb sor alapján a terem méretéhez
 	static final private char VASZON='\u2588'; // Vászon karaktere
@@ -89,6 +90,24 @@ public class Terem extends Kijelzo {
 		this.irXY(teremSor-2,18,"SZABAD: "+szabad);
 	}
 	
+	//Foglaláskor a lefoglalt helyek mutatására előfoglalást csinálunk.
+	public void elofoglal(int sor, int oszlop) {
+	   int seged;
+      this.helyek[sor-1][oszlop-1]=ELOFOGLALT; //megfelelő hely foglaltra állítása
+      seged=(int) ((teremOszlop-(helyek[sor-1].length)*2)/2); //az adott sor első oszlopának kiszámítása
+      this.irXY(VASZONSOR+URESSOR+sor-1, seged+(oszlop*2)-2, helyek[sor-1][oszlop-1]+""); //foglalt jel kiírása a megfelelő sor megfelelő
+      //oszlopába
+	}
+	
+	//Folglaláskor, ha nem megfelelőek a helyek, akkor az előfoglalást törölni kell
+	public void elofoglaltorol(int sor, int oszlop) {
+	   int seged;
+      this.helyek[sor-1][oszlop-1]=SZABAD; //megfelelő hely szabadra állítása
+      seged=(int) ((teremOszlop-(helyek[sor-1].length)*2)/2); //az adott sor első oszlopának kiszámítása
+      this.irXY(VASZONSOR+URESSOR+sor-1, seged+(oszlop*2)-2, helyek[sor-1][oszlop-1]+""); //szabad jel kiírása a megfelelő sor megfelelő
+      //oszlopába
+	}
+	
 	public void helytorol(int sor,int oszlop) {
 		int seged;
 		this.helyek[sor-1][oszlop-1]=SZABAD; //megfelelő hely szabadra állítása
@@ -127,6 +146,12 @@ public class Terem extends Kijelzo {
 	
 	public int getSorHelyDarab(int sor) {
 		return helyek[sor-1].length;  
+	}
+	
+	//Egy adott sor, oszlop-ról megmondja foglalt vagy szabad.
+	//Ha Foglalt, a függvény értéke true, ha szabad akkor false.
+	public boolean getHelyFoglalt(int sor, int oszlop) {
+	   return this.helyek[sor-1][oszlop-1]==FOGLALT; 
 	}
 } 
 

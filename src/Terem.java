@@ -3,9 +3,9 @@
 public class Terem extends Kijelzo {
 	static final private int URESSOR=3; // vászon és első sor közötti sorok száma
 	static final private int VASZONSOR=3; //vászon helye
-	static final private char FOGLALT='X';
-	static final private char ELOFOGLALT='░';
-	static final private char SZABAD='*';
+	static final char FOGLALT='X';
+	static final char ELOFOGLALT='░';
+	static final char SZABAD='*';
 	static final private double MERETARANY=2.8; //Arányszám a leghosszabb sor alapján a terem méretéhez
 	static final private char VASZON='\u2588'; // Vászon karaktere
 	
@@ -161,7 +161,6 @@ public class Terem extends Kijelzo {
       return helyek.length;
    }
 	
- 
-	
+   	
 } 
 

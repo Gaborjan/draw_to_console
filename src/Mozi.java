@@ -30,7 +30,14 @@ public class Mozi {
       						}
       						case 2: // Fájlműveletek/Foglalások kimentése
       						{
-      						
+      							if (inicializalasOk) {
+      								fajlbament();
+      							}
+      							else
+      							{
+      								System.out.println("Még nem lettek létrehozva a termek, nem indítható foglalás!");
+      								extra.Console.pressEnter();
+      							}
       							break;
       						}
       						case 3:break; // Fájlműveletek/Foglalások betöltése
@@ -424,6 +431,58 @@ public class Mozi {
          extra.Console.pressEnter();
       }
 	} // visszavét metódus
+	
+	static void fajlbament() {
+		// fajlbament metódus
+		String egySor="";
+		RandomAccessFile fajl;
+		String fajlNev="";
+		GregorianCalendar naptar = new GregorianCalendar();
+		try {
+			fajlNev="Foglalások_";
+			fajlNev=fajlNev+naptar.get(Calendar.YEAR)+"_"+naptar.get(Calendar.MONTH)+"_"+naptar.get(Calendar.DAY_OF_MONTH)+"_";
+			fajlNev=fajlNev+naptar.get(Calendar.HOUR_OF_DAY)+"_"+naptar.get(Calendar.MINUTE)+"_"+naptar.get(Calendar.SECOND);
+			fajlNev=fajlNev+".csv";
+			fajl=new RandomAccessFile(fajlNev, "rw");
+			fajl.setLength(0);
+			egySor="";
+			fajl.writeBytes("#\n");
+			for (int i=0;i<moziTermek.length;i++) { //moziTermek.length
+				fajl.writeBytes(moziTermek[i].getTeremNev()+"\n");
+				fajl.writeBytes(moziTermek[i].getFilmCim()+"\n");
+				egySor="";
+				egySor=egySor+moziTermek[i].getTeremSor(); // Adott terem sorainak száma
+				for (int j=1;j<=moziTermek[i].getTeremSor();j++) // Kiírjuk a sorok helyeinek számát
+					egySor=egySor+";"+moziTermek[i].getSorHelyDarab(j);
+				fajl.writeBytes(egySor+"\n");
+				for (int k=1;k<=moziTermek[i].getTeremSor();k++) {
+					egySor="";
+					for (int j=1;j<=moziTermek[i].getSorHelyDarab(k);j++) {
+						if (moziTermek[i].getHelyFoglalt(k,j))
+							egySor=egySor+";"+Terem.FOGLALT;
+						else
+							egySor=egySor+";"+Terem.SZABAD;
+					}
+					fajl.writeBytes(egySor+"\n");
+				}//Helyek kiírása ciklus
+				fajl.writeBytes("Szabad helyek: "+moziTermek[i].getSzabad()+"\n");
+				fajl.writeBytes("Foglalt helyek: "+moziTermek[i].getFoglalt()+"\n");
+				fajl.writeBytes("Bevétel foglaltság alapján: "+moziTermek[i].getBevetel()+"\n");
+				if (i<moziTermek.length-1) 
+					fajl.writeBytes("#"+"\n");
+				else
+					fajl.writeBytes("###"+"\n");
+			}
+			fajl.close();
+			System.out.println("A foglalási adatok kiírása sikeresen megtörtént!");
+			System.out.println("A fájl neve:   "+fajlNev);
+			extra.Console.pressEnter();
+		}
+		catch (IOException e) {
+			System.err.println(" Hiba történ a fájlba írás közben!");
+			extra.Console.pressEnter();
+		}
+	}
 	
 } // class Mozi
 

@@ -12,6 +12,7 @@ public class Mozi {
 		
 	public static void main(String[] args) {
 		int menuP=0;
+		char fBiztos; // Segédváltozó
 	   // !!!Csak a tesztelés idejére, ne kelljen mindig a menüből!!!!
 		mozi_betolt();
 		inicializalasOk=true;
@@ -40,8 +41,31 @@ public class Mozi {
       							}
       							break;
       						}
-      						case 3:break; // Fájlműveletek/Foglalások betöltése
-      					} // fájlműveletek switch
+      						case 3: {// Fájlműveletek/Foglalások betöltése
+      							if (inicializalasOk) {
+      								System.out.println("FIGYELEM!");
+      								System.out.println("Ha ezt a funkciót választja, akkor az aktuális foglalási adatok");
+      								System.out.println("felülírásra kerülnek!");
+      								System.out.println(" ");
+      								do {
+                                 fBiztos=extra.Console.readChar("Biztos benne? <I>gen / <N>em ");
+                                 fBiztos=Character.toUpperCase(fBiztos);
+                              } while (fBiztos!='N' && fBiztos!='I');
+      								if (fBiztos=='I')
+      									fajlbolbetolt();
+      								else {
+      									System.out.println("Az aktuális foglalási adatok nem kerültek felülírásra.");
+      									extra.Console.pressEnter();
+      								}
+      							}
+      							else
+      							{
+      								System.out.println("Még nem lettek létrehozva a termek, nem indítható foglalás!");
+      								extra.Console.pressEnter();
+      							}
+      							break; 
+      						}
+      							 						      					} // fájlműveletek switch
    					} while (menuP!=0); //Amíg a Fájlműveletekből nem lépünk ki
    					menuP=99; // Így nem lépünk ki a Főmenűből
    					break;
@@ -484,6 +508,64 @@ public class Mozi {
 		}
 	}
 	
+	static void fajlbolbetolt() {
+		String fNev=""; // A betöltendő fájl neve
+		RandomAccessFile fajl;
+		String egySor="";
+		String [] helyAdat;
+		int szabad=0;
+		int foglalt=0;
+		
+		do {
+			//fNev=extra.Console.readLine("Adja meg a betöltendő fájl nevét! (Kilépés=0)");
+			fNev="FOGPL1.csv";
+			try {
+				if (!(fNev.equals("0")))
+					fajl= new RandomAccessFile(fNev.toString(),"r");
+				else
+					continue;
+				for (int i=0;i<moziTermek.length;i++) {
+					egySor=fajl.readLine();//#
+					egySor=fajl.readLine();//Teremnév
+					moziTermek[i].setTeremNev(egySor.substring(0, egySor.indexOf(';')));
+					egySor=fajl.readLine();//FilmCím
+					moziTermek[i].setFilmCim(egySor.substring(0, egySor.indexOf(';')));
+					egySor=fajl.readLine();//Sor és oszlopok száma
+					foglalt=0;
+					szabad=0;
+					for (int j=1;j<=moziTermek[i].getTeremSor();j++) { // Egyesével bekérjük a sorokat
+						egySor=fajl.readLine();
+						//System.out.println(egySor);
+						helyAdat = new String [moziTermek[i].getSorHelyDarab(j)]; //Ahány szék van az adott sorban
+						helyAdat=egySor.split(";");
+						for (int k=0;k<helyAdat.length;k++) { // Az egyes helyeket beállítjuk annak megfelelően, hogy foglaltak (X) vagy szabadok (*)
+							if (helyAdat[k].equals(Terem.FOGLALT+"")) { 
+								moziTermek[i].foglal(j,k);
+								foglalt++;
+							}
+							else if (helyAdat[k].equals(Terem.SZABAD+"")) { 
+								moziTermek[i].helytorol(j, k);
+								szabad++;
+							}
+						} // helyek beállítása
+					} // egy terem egy sorai
+					//extra.Console.pressEnter();
+					moziTermek[i].setFoglalt(foglalt);
+					moziTermek[i].setSzabad(szabad);
+					moziTermek[i].helyAktualizal();
+					egySor=fajl.readLine(); //Szabad helyek
+					egySor=fajl.readLine(); //Foglalt helyek
+					egySor=fajl.readLine(); //Bevétel
+				} // mozitermek darabszáma
+				fajl.close();
+				System.out.println("Betöltés sikeres!");
+				fNev="0";
+			}
+			catch (IOException e ) {
+				System.out.println("A megadott fájlt nem sikerült megnyitni!");
+			}
+		} while (!(fNev.equals("0")));
+	}// fajlbolbetolt
 } // class Mozi
 
 

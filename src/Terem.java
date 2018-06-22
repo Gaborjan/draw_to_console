@@ -124,6 +124,10 @@ public class Terem extends Kijelzo {
 	public String getTeremNev() {
 		return teremNev;
 	}
+	
+	public void setTeremNev(String teremNev) {
+		this.teremNev=teremNev;
+	}
 
 	public int getJegyAr() {
 		return jegyAr;
@@ -145,6 +149,10 @@ public class Terem extends Kijelzo {
 		return filmCim;
 	}
 	
+	public void setFilmCim(String filmCim) {
+		this.filmCim=filmCim;
+	}
+	
 	//Visszaadja hány hely van a megadott sorban
 	public int getSorHelyDarab(int sor) {
 		return helyek[sor-1].length;  
@@ -161,6 +169,22 @@ public class Terem extends Kijelzo {
       return helyek.length;
    }
 	
-   	
+   //Szabad helyek beállítása
+   public void setSzabad(int db) {
+   	this.szabad=db;
+   }
+   
+ //Foglalt helyek beállítása
+   public void setFoglalt(int db) {
+   	this.foglalt=db;
+   }
+
+   //Foglalt és szabad helyek aktualizálása
+   public void helyAktualizal() {
+   	this.irXY(teremSor-2,3,"FOGLALT: "+"     "); //foglalt és szabad helyek aktualizálása
+		this.irXY(teremSor-2,18,"SZABAD: "+"     ");
+   	this.irXY(teremSor-2,3,"FOGLALT: "+foglalt); //foglalt és szabad helyek aktualizálása
+		this.irXY(teremSor-2,18,"SZABAD: "+szabad);
+   }
 } 
 

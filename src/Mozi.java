@@ -1,11 +1,27 @@
+/*Java programozási alapok gyakorlása céljából készült program.
+ * Egy nagyon egyszerű jegyeladási rendszert szimulálunk. Mivel nem adatbáziskezelés a cél
+ * számos egyszerűsítéssel élünk.
+ * A jegyértékesítés mindig csak adott napra lehetséges.
+ * Az értékesítés azzal indul, hogy fájlokban megadott adatok alapján létrehozzuk a termeket illetve ugyancsak
+ * fájlból betöltjük a műsort, a jegyárakat.
+ * Ezután a foglalás, illetve lemondás értelemszerűen, a szokásos módon lehetséges.
+ * Bármikor le tudjuk kérdezni egy terem állapotát, ahol látjuk hol és mennyi foglalt hely van.
+ * Az aktuális foglaltsági állapot elmenthető egy .csv fájlba, amit utána akár Excellel tovább szerkeszthetünk.
+ * Egy foglaltsági állapot vissza is tölthető (előtte a műsorbetöltést meg kell csinálnuk, illetve ha már dolgoztunk
+ * a programmal, akkor az aktuális adatok felülíródnak. Ez akkor praktikus, ha valami miatt fel kell függeszteni 
+ * az értékesítést (pl. pénztárps ebédszünet, stb.), illetve ha csoportok foglalnak, akkor egyszerűbb Excelben a sok helyet
+ * foglalttá tenni és betölteni.
+ */
 import java.io.*;
+import java.text.DateFormat;
 import java.util.*;
-import extra.Menu;
+
+//import extra.Menu;
 import extra.*;
 
 public class Mozi {
 	static Terem[] moziTermek; //Ebben a tömbben tároljuk a mozitermeket
-	static final String FOMENUPONTOK[] = {"1. Fájlműveletek","2. Foglalás","3. Lemondás","4. Teremállapot","0. Program vége"};
+	static final String FOMENUPONTOK[] = {"1. Fájlműveletek","2. Foglalás","3. Lemondás","4. Teremállapot","5. Bevételi adatok","0. Program vége"};
 	static final String FAJLMUVELETEK[] = {"1. Műsorbetöltés", "2. Foglalások kimentése","3. Foglalások betöltése","0. FŐMENÜ"};
 	static boolean inicializalasOk = false; //Akkor lesz igaz, ha a létrehozzuk a termeket a mozi_betolt eljárással;
 	static double kezKtg=0.1; // Lemondásnál ennyi kezelési költséget vonunk le a lemondott jegyek árából
@@ -17,7 +33,7 @@ public class Mozi {
 		mozi_betolt();
 		inicializalasOk=true;
 		do {
-			menuP=Menu.egyszeruMenu("Főmenü",FOMENUPONTOK, 5);
+			menuP=Menu.egyszeruMenu("Főmenü",FOMENUPONTOK, 6);
 			switch (menuP) {
    			case 1: //Főmenü/Fájlműveletek
    				{
@@ -36,7 +52,7 @@ public class Mozi {
       							}
       							else
       							{
-      								System.out.println("Még nem lettek létrehozva a termek, nem indítható foglalás!");
+      								System.out.println("Még nem történt meg a műsorbetöltés, a termek nincsenek létrehozva, nincs mit menteni!");
       								extra.Console.pressEnter();
       							}
       							break;
@@ -60,7 +76,7 @@ public class Mozi {
       							}
       							else
       							{
-      								System.out.println("Még nem lettek létrehozva a termek, nem indítható foglalás!");
+      								System.out.println("Még nem történt meg a műsorbetöltés, a termek nincsenek létrehozva, nincs hová adatot tölteni!");
       								extra.Console.pressEnter();
       							}
       							break; 
@@ -77,7 +93,7 @@ public class Mozi {
  					}
 					else
 					{
-						System.out.println("Még nem lettek létrehozva a termek, nem indítható foglalás!");
+						System.out.println("Még nem történt meg a műsorbetöltés, a termek nincsenek létrehozva, nem indítható foglalás!");
 						extra.Console.pressEnter();
 					}
    				menuP=99;
@@ -90,7 +106,7 @@ public class Mozi {
                }
                else
                {
-                  System.out.println("Még nem lettek létrehozva a termek, nem indítható törlés!");
+                  System.out.println("Még nem történt meg a műsorbetöltés, a termek nincsenek létrehozva, nem lehet foglalást lemondani!");
                   extra.Console.pressEnter();
                }
                menuP=99;
@@ -104,11 +120,24 @@ public class Mozi {
    				}
    				else
    				{
-   					System.out.println("Még nem lettek létrehozva a termek, nincs mit listázni!");
+   					System.out.println("Még nem történt meg a műsorbetöltés, a termek nincsenek létrehozva,, nincs mit listázni!");
    					extra.Console.pressEnter();
    				}
    				break;
    			} //Teremállapot case ág
+   			case 5: //Főmenű/Bevételi adatok
+   			{
+   			   if (inicializalasOk) {
+                  beveteli_adatok();
+                  menuP=99;
+               }
+               else
+               {
+                  System.out.println("Még nem történt meg a műsorbetöltés, a termek nincsenek létrehozva, bevételi adatok nem jeleníthetőek meg!");
+                  extra.Console.pressEnter();
+               }
+               break;  
+   			}// Bevételi adatok case ág
 			} //fomenu switch
 		} while (menuP!=0); 
 		System.out.println("PROGRAM VÉGE");
@@ -123,7 +152,7 @@ public class Mozi {
 	   if (!inicializalasOk) {
 	      if (mozi_betolt()) { // Ha a mozi_betolt sikeresen lefut, nem volt hiba
             inicializalasOk=true;
-            System.out.println("Sikeres inicializálás. Betöltött termek:");
+            System.out.println("Sikeres műsorbetöltés. Betöltött termek:");
             for (int i=0; i<moziTermek.length;i++)
                System.out.println(moziTermek[i].getTeremNev());
             extra.Console.pressEnter();
@@ -131,7 +160,7 @@ public class Mozi {
 	   }
       else
       {
-         System.out.println("Már volt inicializálás!");
+         System.out.println("Már volt műsorbetöltés!");
          extra.Console.pressEnter();
       }   
 	} // inicializalas metódus
@@ -189,7 +218,7 @@ public class Mozi {
 			while (egySor!=null) {
 				seged=egySor.split(";");
 				teremSzekek = new int[seged.length-1]; //Kell egy tömb, amiben eltároljuk melyik sorban hány szék van
-				for (int i=0;i<seged.length-1;i++) // Feltöltjük a tömböt, amiben a székek számával (soronként)
+				for (int i=0;i<seged.length-1;i++) // Feltöltjük a tömböt, amiben a székek számával (soronként), utolsó elem a terem neve ezért length-1
 					teremSzekek[i]=Integer.parseInt(seged[i]);
 				//Minden adat megvan, létrehozzunk az adott termet
 				moziTermek[t]= new Terem(teremSorok[t],teremSzekek,seged[seged.length-1],jegyArak[t],filmCimek[t]);
@@ -463,40 +492,40 @@ public class Mozi {
 		String fajlNev="";
 		GregorianCalendar naptar = new GregorianCalendar();
 		try {
-			fajlNev="Foglalások_";
+			//Előállítjuk a fájl nevét, ami 'Foglalások_'+dátum+idő másodperces pontossággal
+		   fajlNev="Foglalások_";
 			fajlNev=fajlNev+naptar.get(Calendar.YEAR)+"_"+naptar.get(Calendar.MONTH)+"_"+naptar.get(Calendar.DAY_OF_MONTH)+"_";
 			fajlNev=fajlNev+naptar.get(Calendar.HOUR_OF_DAY)+"_"+naptar.get(Calendar.MINUTE)+"_"+naptar.get(Calendar.SECOND);
 			fajlNev=fajlNev+".csv";
 			fajl=new RandomAccessFile(fajlNev, "rw");
-			fajl.setLength(0);
 			egySor="";
-			fajl.writeBytes("#\n");
-			for (int i=0;i<moziTermek.length;i++) { //moziTermek.length
+			fajl.writeBytes("#\n");//A termek adatait a kettőskereszt választja el egymástól
+			for (int i=0;i<moziTermek.length;i++) { //A mozitermek mindegyikét feldolgozzuk
 				fajl.writeBytes(moziTermek[i].getTeremNev()+"\n");
 				fajl.writeBytes(moziTermek[i].getFilmCim()+"\n");
 				egySor="";
 				egySor=egySor+moziTermek[i].getTeremSor(); // Adott terem sorainak száma
-				for (int j=1;j<=moziTermek[i].getTeremSor();j++) // Kiírjuk a sorok helyeinek számát
+				for (int j=1;j<=moziTermek[i].getTeremSor();j++) // Kiírjuk melyik sorban hány hely van
 					egySor=egySor+";"+moziTermek[i].getSorHelyDarab(j);
 				fajl.writeBytes(egySor+"\n");
-				for (int k=1;k<=moziTermek[i].getTeremSor();k++) {
+				for (int k=1;k<=moziTermek[i].getTeremSor();k++) { //A ciklusban az egyes sorokban lévő helyeket írjuk ki
 					egySor="";
-					for (int j=1;j<=moziTermek[i].getSorHelyDarab(k);j++) {
-						if (moziTermek[i].getHelyFoglalt(k,j))
+					for (int j=1;j<=moziTermek[i].getSorHelyDarab(k);j++) { //A ciklus egy sort ír ki a fájlba
+						if (moziTermek[i].getHelyFoglalt(k,j)) //Attól függően, hogy foglalt vagy üres, más karaktert írunk ki
 							egySor=egySor+";"+Terem.FOGLALT;
 						else
 							egySor=egySor+";"+Terem.SZABAD;
-					}
+					}//Egy sor kiírása ciklus
 					fajl.writeBytes(egySor+"\n");
-				}//Helyek kiírása ciklus
+				}//Terem helyek kiírása ciklus
 				fajl.writeBytes("Szabad helyek: "+moziTermek[i].getSzabad()+"\n");
 				fajl.writeBytes("Foglalt helyek: "+moziTermek[i].getFoglalt()+"\n");
 				fajl.writeBytes("Bevétel foglaltság alapján: "+moziTermek[i].getBevetel()+"\n");
-				if (i<moziTermek.length-1) 
+				if (i<moziTermek.length-1) //Új terem következik, ezért elválasztót írunk ki, ha nincs több terem, a fájl végére ### kerül 
 					fajl.writeBytes("#"+"\n");
 				else
 					fajl.writeBytes("###"+"\n");
-			}
+			} // Mozitermeket feldololgozó ciklus
 			fajl.close();
 			System.out.println("A foglalási adatok kiírása sikeresen megtörtént!");
 			System.out.println("A fájl neve:   "+fajlNev);
@@ -509,24 +538,29 @@ public class Mozi {
 	}
 	
 	static void fajlbolbetolt() {
+	   //A metódusban feltételezzük, hogy a kiírt fájlban lévő adatok megfelelnek a termek méreteinek, vagyis ha megváltoztak a termek,
+	   //akkor nem akarunk olyat adatokat betölteni, amelyek nem az aktuális terem szerintiek. Ilyen ellenőrzést nem végzünk.
+	   //Feltesszük továbbá, hogy volt műsorbetöltés, azt külön kell megtenni.
+	   
 		String fNev=""; // A betöltendő fájl neve
 		RandomAccessFile fajl;
 		String egySor="";
-		String [] helyAdat;
-		int szabad=0;
-		int foglalt=0;
-		
-		do {
+		String [] helyAdat; //Egy sor helyeit tároljuk majd benne
+		int szabad=0; // szabad helyek száma
+		int foglalt=0; // foglalt helyek száma
+				
+		do { //ciklus kilépésig
 			//fNev=extra.Console.readLine("Adja meg a betöltendő fájl nevét! (Kilépés=0)");
 			fNev="FOGPL1.csv";
 			try {
-				if (!(fNev.equals("0")))
+				if (!(fNev.equals("0"))) // Ha nem kilépés
 					fajl= new RandomAccessFile(fNev.toString(),"r");
 				else
-					continue;
-				for (int i=0;i<moziTermek.length;i++) {
+					continue; //Ha 0-t adtak meg a ciklus végére ugrunk és ki is lépünk majd
+				for (int i=0;i<moziTermek.length;i++) { //A termek mindegyikét feldolgozzuk
 					egySor=fajl.readLine();//#
 					egySor=fajl.readLine();//Teremnév
+					//Az Excel telenyomja elválasztóval a fájlt mentés után, ezért csak az első elválasztóig lévő szöveget vesszük ki
 					moziTermek[i].setTeremNev(egySor.substring(0, egySor.indexOf(';')));
 					egySor=fajl.readLine();//FilmCím
 					moziTermek[i].setFilmCim(egySor.substring(0, egySor.indexOf(';')));
@@ -535,30 +569,32 @@ public class Mozi {
 					szabad=0;
 					for (int j=1;j<=moziTermek[i].getTeremSor();j++) { // Egyesével bekérjük a sorokat
 						egySor=fajl.readLine();
-						//System.out.println(egySor);
-						helyAdat = new String [moziTermek[i].getSorHelyDarab(j)]; //Ahány szék van az adott sorban
-						helyAdat=egySor.split(";");
+						helyAdat = new String [moziTermek[i].getSorHelyDarab(j)]; //Létrehozzuk a tömböt annyi elemmel, ahány hely van a sorban
+						helyAdat=egySor.split(";"); //szétszedjük a sort 
 						for (int k=0;k<helyAdat.length;k++) { // Az egyes helyeket beállítjuk annak megfelelően, hogy foglaltak (X) vagy szabadok (*)
-							if (helyAdat[k].equals(Terem.FOGLALT+"")) { 
+							if (helyAdat[k].equals(Terem.FOGLALT+"")) { // Foglalt esetben foglalunk
 								moziTermek[i].foglal(j,k);
-								foglalt++;
+								foglalt++; //számoljuk a foglalt helyeket
 							}
-							else if (helyAdat[k].equals(Terem.SZABAD+"")) { 
+							else if (helyAdat[k].equals(Terem.SZABAD+"")) { // Szabad esetben a helyet felszabadítjuk 
 								moziTermek[i].helytorol(j, k);
-								szabad++;
+								szabad++; // számoljuk a szabad helyeket
 							}
 						} // helyek beállítása
 					} // egy terem egy sorai
 					//extra.Console.pressEnter();
-					moziTermek[i].setFoglalt(foglalt);
+					moziTermek[i].setFoglalt(foglalt); // külön beállítjuk mennyi foglalt és szabad hely volt a fájl adataiban
 					moziTermek[i].setSzabad(szabad);
-					moziTermek[i].helyAktualizal();
+					moziTermek[i].helyAktualizal(); // szükség van még egy kiírás aktualizálásra is, különben a régi adatok a kijelzőn maradhatnak
 					egySor=fajl.readLine(); //Szabad helyek
 					egySor=fajl.readLine(); //Foglalt helyek
 					egySor=fajl.readLine(); //Bevétel
 				} // mozitermek darabszáma
 				fajl.close();
-				System.out.println("Betöltés sikeres!");
+				System.out.println("-------------------------------------");
+				System.out.println("A(z) "+fNev+" fájl betöltése sikeres!");
+				System.out.println("-------------------------------------");
+				extra.Console.pressEnter();
 				fNev="0";
 			}
 			catch (IOException e ) {
@@ -566,56 +602,49 @@ public class Mozi {
 			}
 		} while (!(fNev.equals("0")));
 	}// fajlbolbetolt
+	
+	static void beveteli_adatok() {
+	   int bsor = 8+moziTermek.length; // Ennyi sora lesz a bevétel képernyőnek
+	   Kijelzo bevetel = new Kijelzo(bsor, 100); //Létrehozzunk a képernyőt
+	   double osszBevetel=0; 
+	   Calendar c = Calendar.getInstance();
+	   DateFormat df = DateFormat.getDateTimeInstance(DateFormat.LONG,DateFormat.MEDIUM, Locale.getDefault());
+	   
+	   bevetel.keret(bsor, 100, 'D', false, " B E V É T E L I       A D A T O K    "+df.format(c.getTime())+" ");
+	   //Fejléc készítése
+	   bevetel.irXY(2, 2, "Ssz.");
+	   bevetel.irXY(2, 7, "Terem");
+	   bevetel.irXY(2, 28, "Film");
+	   bevetel.irXY(2, 56, "Jegyár");
+	   bevetel.irXY(2, 63 , "Foglalt");
+	   bevetel.irXY(2,72," Szabad");
+	   bevetel.irXY(2, 89, "Bevétel");
+	   for (int i=0;i<moziTermek.length;i++ ) { //Minden termet feldolgozunk
+	      //Kírjuk a szükséges adatokat
+	      bevetel.irXY(4+i, 2, String.format("%3d",(i+1))+".");
+	      bevetel.irXY(4+i, 7, levag(moziTermek[i].getTeremNev(),20));
+	      bevetel.irXY(4+i, 28, levag(moziTermek[i].getFilmCim(),25));
+	      bevetel.irXY(4+i, 54, String.format("%,5d", moziTermek[i].getJegyAr())+" Ft");
+	      bevetel.irXY(4+i, 63 , String.format("%,7d", moziTermek[i].getFoglalt()));
+	      bevetel.irXY(4+i,72, String.format("%,7d", moziTermek[i].getSzabad()));
+	      bevetel.irXY(4+i, 85, String.format("%,8.0f", moziTermek[i].getBevetel())+" Ft"); 
+	      osszBevetel+=moziTermek[i].getBevetel();
+	   }
+	   //Összesítés elkészítése
+	   bevetel.sorRajzol(4+moziTermek.length, 2, 95, '-');
+	   bevetel.irXY(4+moziTermek.length+1, 7, "B E V É T E L     M I N D Ö S S Z E S E N : ");
+	   bevetel.irXY(4+moziTermek.length+1,83,String.format("%,10.0f", osszBevetel)+" Ft");
+	   bevetel.kiir();
+	   extra.Console.pressEnter();
+	}
+	
+	//A metódus a paraméterként kapott sztring 0. karakterétől számított db hosszúságú sztringet
+	//ad vissza. Ha a sztring rövidebb, mint a megadott db, akkor az egész stzringet visszaadja.
+	static String levag(String szoveg, int db) {
+	   if (szoveg.length()<=db)
+	      return szoveg;
+	   else
+	      return szoveg.substring(0,db-1);
+	}
+	
 } // class Mozi
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/*mozi_betolt();
-for (int i=0;i<moziTermek.length;i++)
-	moziTermek[i].kiir();
-System.out.println("VÉGE");*/
-/*int[] terem1Szekek = {10,10,10,15,15,15,15,15,15,25};
-int[] terem2Szekek = {10,10,10,20,20,20,30,30,40,40};
-Terem Terem1 = new Terem(10,terem1Szekek,"JÁVOR PÁL TEREM",1990,"CSILLAGOK HÁBORÚJA I.");
-Terem1.kiir();
-Terem1.foglal(5, 5);
-Terem1.foglal(1, 1);
-Terem1.foglal(1, 10);
-Terem1.foglal(10, 25);
-Terem1.foglal(10, 24);
-Terem1.foglal(10, 1);
-Terem1.kiir();
-Terem1.helytorol(1, 1);
-Terem1.kiir();
-System.out.println(String.format("%,6.0f",Terem1.getBevetel())+" Ft");
-Terem Terem2 = new Terem(10,terem2Szekek,"JOHN WILLIAMS TEREM",1590,"VISSZA A JŐVŐBE III.");
-Terem2.kiir();
-Terem2.foglal(5, 5);
-Terem2.foglal(1, 1);
-Terem2.foglal(1, 10);
-Terem2.foglal(10, 25);
-Terem2.foglal(10, 24);
-Terem2.foglal(10, 1);
-Terem2.kiir();
-Terem2.helytorol(1, 1);
-Terem2.kiir();
-System.out.println(String.format("%,6.0f",Terem2.getBevetel())+" Ft");*/

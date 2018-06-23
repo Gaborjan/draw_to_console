@@ -1,12 +1,12 @@
 /*
- * javalib könyvtár
+ * javalib kï¿½nyvtï¿½r
  * Csomag: extra
  * Console.java
  *
- * Angster Erzsébet: OO tervezés és programozás, Java 1. kötet
+ * Angster Erzsï¿½bet: OO tervezï¿½s ï¿½s programozï¿½s, Java 1. kï¿½tet
  * 2002.09.01.
  *
- * Beolvasás a konzolról:
+ * Beolvasï¿½s a konzolrï¿½l:
  *
  * String readLine()
  * String readLine(String str)
@@ -25,18 +25,18 @@ package extra;
 import java.io.*;
 
 public class Console {
-  // Az osztályból nem lehet példányt létrehozni:
+  // Az osztÃ¡lybÃ³l nem lehet pÃ©ldÃ¡nyt lÃ©trehozni:
   private Console() {
   }
 
-  /* Pufferezõ karakterfolyam, melynek forráshelye a konzol.
-   * A readLine metódus használja.
+  /* PufferezÅ‘ karakterfolyam, melynek forrÃ¡shelye a konzol.
+   * A readLine metÃ³dus hasznÃ¡lja.
    */
   private static BufferedReader be =
      new BufferedReader(new InputStreamReader(System.in));
 
   // ---------------------------------------------------------
-  // String beolvasása sor végéig:
+  // String beolvasasa sor vÃ©gÃ©ig:
   public static String readLine() {
     String beString = "";
     try {
@@ -48,47 +48,47 @@ public class Console {
   }
 
   // ---------------------------------------------------------
-  // String beolvasása sor végéig, elõtte prompt:
+  // String beolvasasa sor vÃ©gÃ©ig, elÅ‘tte prompt:
   public static String readLine(String str) {
     System.out.print(str);
     return readLine();
   }
 
   // ---------------------------------------------------------
-  // Karakter beolvasása:
+  // Karakter beolvasÃ¡sa:
   public static char readChar() {
     while(true) {
       try {
         return readLine().charAt(0);
       }
       catch(IndexOutOfBoundsException e) {
-        System.out.println("Nem karakter! Ujra!");
+        System.out.println("Nem karakter! Ãšjra!");
       }
     }
   }
 
   // ---------------------------------------------------------
-  // Karakter beolvasása, elõtte prompt:
+  // Karakter beolvasÃ¡sa, elÅ‘tte prompt:
   public static char readChar(String str) {
     System.out.print(str);
     return readChar();
   }
 
   // ---------------------------------------------------------
-  // Egész (int) beolvasása:
+  // EgÃ©sz (int) beolvasÃ¡sa:
   public static int readInt() {
     while(true) {
       try {
         return Integer.parseInt(readLine().trim());
       }
       catch(NumberFormatException e) {
-        System.out.println("Nem egesz! Ujra!");
+        System.out.println("Nem egÃ©sz! Ãšjra!");
       }
     }
   }
 
   // ---------------------------------------------------------
-  // Egész (int) beolvasása, elõtte prompt:
+  // EgÃ©sz (int) beolvasÃ¡sa, elÅ‘tte prompt:
   public static int readInt(String str) {
     while(true) {
       System.out.print(str);
@@ -96,26 +96,26 @@ public class Console {
         return Integer.parseInt(readLine().trim());
       }
       catch(NumberFormatException e) {
-        System.out.println("Nem egesz! Ujra!");
+        System.out.println("Nem egÃ©sz! Ãšjra!");
       }
     }
   }
 
   // ---------------------------------------------------------
-  // Egész (long) beolvasása:
+  // EgÃ©sz (long) beolvasÃ¡sa:
   public static long readLong() {
     while(true) {
       try {
         return Long.parseLong(readLine().trim());
       }
       catch(NumberFormatException e) {
-        System.out.println("Nem egesz! Ujra!");
+        System.out.println("Nem egÃ©sz! Ãšjra!");
       }
     }
   }
 
   // ---------------------------------------------------------
-  // Egész (long) beolvasása, elõtte prompt:
+  // Egï¿½sz (long) beolvasï¿½sa, elï¿½tte prompt:
   public static long readLong(String str) {
     while(true) {
       System.out.print(str);
@@ -129,20 +129,20 @@ public class Console {
   }
 
   // ---------------------------------------------------------
-  // Valós (double) beolvasása:
+  // ValÃ³s (double) beolvasÃ¡sa:
   public static double readDouble() {
     while(true) {
       try {
         return Double.parseDouble(readLine().trim());
       }
       catch(NumberFormatException e) {
-        System.out.println("Nem valos! Ujra!");
+        System.out.println("Nem valÃ³s! Ãšjra!");
       }
     }
   }
 
   // ---------------------------------------------------------
-  // Valós (double) beolvasása, elõtte prompt:
+  // ValÃ³s (double) beolvasÃ¡sa, elÅ‘tte prompt:
   public static double readDouble(String str) {
     while(true) {
       System.out.print(str);
@@ -150,13 +150,13 @@ public class Console {
         return Double.parseDouble(readLine().trim());
       }
       catch(NumberFormatException e) {
-        System.out.println("Nem valos! Ujra!");
+        System.out.println("Nem valÃ³s! Ãšjra!");
       }
     }
   }
 
   // ---------------------------------------------------------
-  // Várás az ENTER lenyomására:
+  // VÃ¡rÃ¡s az ENTER lenyomÃ¡sÃ¡ra:
   public static void pressEnter() {
     System.out.print("<ENTER>");
     readLine();

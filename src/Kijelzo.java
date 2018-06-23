@@ -1,3 +1,6 @@
+/*Mivel a konzolra elég nehézkes a kiírás, virtuális képernyőt hozhatunk létre az osztállyal, amire a különféle metódusokkal
+ * írhatunk. A virtuális kijelző tartalmát a kiír metódussal jeleníthetjük meg.
+ */
 public class Kijelzo {
 	private static final int MAXOSZLOP	 = 200;
 	private static final int MAXSOR		 = 50;
@@ -9,7 +12,7 @@ public class Kijelzo {
 		
 	}
 	
-	
+	//Konstruktor
 	public Kijelzo(int sor, int oszlop) {
 		if (sor > 0 && sor <= MAXSOR && oszlop > 0 && oszlop <= MAXOSZLOP) {
 			tartalom = new char[sor][oszlop];

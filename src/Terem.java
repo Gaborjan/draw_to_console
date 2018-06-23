@@ -85,7 +85,7 @@ public class Terem extends Kijelzo {
 		this.irXY(VASZONSOR+URESSOR+sor-1, seged+(oszlop*2)-2, helyek[sor-1][oszlop-1]+""); //foglalt jel kiírása a megfelelő sor megfelelő
 		//oszlopába
 		this.foglalt++; //foglalt helyek növelése
-		this.bevetel=this.jegyAr*this.foglalt; //bevétel növelése
+		this.bevetel=this.jegyAr*this.foglalt; //bevétel újraszámolása
 		this.szabad--;//szabad helyek csökkentése
 		this.irXY(teremSor-2,3,"FOGLALT: "+foglalt); //foglalt és szabad értékek aktualizálása
 		this.irXY(teremSor-2,18,"SZABAD: "+szabad);
@@ -117,6 +117,7 @@ public class Terem extends Kijelzo {
 		//oszlopába
 		this.foglalt--; //eggyel kevesebb foglalt hely van
 		this.szabad++; //eggyel több szabad hely van
+		this.bevetel=this.jegyAr*this.foglalt; //bevétel újraszámolása
 		this.irXY(teremSor-2,3,"FOGLALT: "+foglalt); //foglalt és szabad helyek aktualizálása
 		this.irXY(teremSor-2,18,"SZABAD: "+szabad);
 	}
@@ -177,6 +178,7 @@ public class Terem extends Kijelzo {
  //Foglalt helyek beállítása
    public void setFoglalt(int db) {
    	this.foglalt=db;
+   	this.bevetel=this.jegyAr*this.foglalt;
    }
 
    //Foglalt és szabad helyek aktualizálása

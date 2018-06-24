@@ -9,7 +9,9 @@ public class Terem extends Kijelzo {
 	static final private double MERETARANY=2.8; //Arányszám a leghosszabb sor alapján a terem méretéhez
 	static final private char VASZON='\u2588'; // Vászon karaktere
 	
+	private int teremID;
 	private char[][] helyek; //A teremben lévő helyeket tároljuk sor, soronként a székek
+	private int filmID;
 	private String filmCim;
 	private String teremNev;
 	private int jegyAr;
@@ -20,7 +22,7 @@ public class Terem extends Kijelzo {
 	private int teremOszlop=0; // Terem oszlopainak a száma ~ kijelző méret oszlop
 	
 	//Konstruktor
-	public Terem(int sor, int[] szekekSzama, String tNev, int jAr, String fCim) {
+	public Terem(int sor, int[] szekekSzama, String tNev, int jAr, String fCim, int tID, int fID) {
 		super(((sor*2)+7),(int) (szekekSzama[sor-1]*MERETARANY)); //Létrehozunk egy "Kijelzot"
 		if (sor>=10) teremSor=(sor*2)+3;//A sorok és oszlopok alapján hozzuk létre a Kijelző méreteit
 		else 
@@ -29,6 +31,8 @@ public class Terem extends Kijelzo {
 		filmCim=fCim;
 		jegyAr=jAr;
 		teremNev=tNev;
+		teremID=tID;
+		filmID=fID;
 		foglalt=0;
 		szabad=0;
 		bevetel=0;
@@ -188,5 +192,14 @@ public class Terem extends Kijelzo {
    	this.irXY(teremSor-2,3,"FOGLALT: "+foglalt); //foglalt és szabad helyek aktualizálása
 		this.irXY(teremSor-2,18,"SZABAD: "+szabad);
    }
+   
+   public int getTeremID() {
+      return this.teremID;
+   }
+   
+   public int getFilmID() {
+      return this.filmID;
+   }
+   
 } 
 

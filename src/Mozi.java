@@ -22,7 +22,7 @@ import extra.*;
 public class Mozi {
 	static Terem[] moziTermek; //Ebben a tömbben tároljuk a mozitermeket
 	static final String FOMENUPONTOK[] = {"1. Fájlműveletek","2. Foglalás","3. Lemondás","4. Teremállapot","5. Bevételi adatok","0. Program vége"};
-	static final String FAJLMUVELETEK[] = {"1. Műsorbetöltés", "2. Foglalások kimentése","3. Foglalások betöltése","0. FŐMENÜ"};
+	static final String FAJLMUVELETEK[] = {"1. Műsorbetöltés", "2. Foglalások kimentése","3. Foglalások betöltése","4. Napi mentés","0. FŐMENÜ"};
 	static boolean inicializalasOk = false; //Akkor lesz igaz, ha a létrehozzuk a termeket a mozi_betolt eljárással;
 	static double kezKtg=0.1; // Lemondásnál ennyi kezelési költséget vonunk le a lemondott jegyek árából
 		
@@ -38,7 +38,7 @@ public class Mozi {
    			case 1: //Főmenü/Fájlműveletek
    				{
    					do {
-   						menuP=Menu.egyszeruMenu(FOMENUPONTOK[0].substring(3, FOMENUPONTOK[0].length()),FAJLMUVELETEK, 4);
+   						menuP=Menu.egyszeruMenu(FOMENUPONTOK[0].substring(3, FOMENUPONTOK[0].length()),FAJLMUVELETEK, 5);
    						switch (menuP) {
       						case 1: // Fájlműveletek/Műsorbetöltés
       						{
@@ -80,6 +80,17 @@ public class Mozi {
       								extra.Console.pressEnter();
       							}
       							break; 
+      						}
+      						case 4: { //Fájlműveletek/Napi mentés
+      						   if (inicializalasOk) {
+                              napimentes();
+                           }
+                           else
+                           {
+                              System.out.println("Még nem történt meg a műsorbetöltés, a termek nincsenek létrehozva, nincs mit menteni!");
+                              extra.Console.pressEnter();
+                           }
+                           break;
       						}
       							 						      					} // fájlműveletek switch
    					} while (menuP!=0); //Amíg a Fájlműveletekből nem lépünk ki
@@ -180,6 +191,8 @@ public class Mozi {
 			int teremSzekek[]; //Ebben a tömbben tároljuk melyik sorban hány szék van
 			String filmCimek[]; //Ebben a tömbben tároljuk a filmek címeit
 			int jegyArak[]; //Ebben a tömbben tároljuk melyik filmre mennyibe kerül a jegy
+			int tID[]; //TeremID-kat tárolja
+         int fID[]; //FilmID-kat tárolja
 			fajl=new RandomAccessFile("mozi_adatok.csv","r");
 			egySor=fajl.readLine(); // Az első magyarázó sor, nincs adat benne
 			egySor=fajl.readLine(); // A mozi termeinek számát tartalmazó 2. sor
@@ -187,7 +200,11 @@ public class Mozi {
 			teremDb=Integer.parseInt(seged[0]); // teremDb=a mozitermek száma
 			filmCimek= new String[teremDb];  
 			jegyArak= new int[teremDb];
+			tID= new int [teremDb];
+			fID= new int [teremDb];
 			t=0;
+			
+			
 			//Betöltjük a filmek címeit és a jegyárakat, eltesszük 1-1 tömbbe
 			try {
 				fajl1=new RandomAccessFile("mozi_musor.csv","r");
@@ -196,6 +213,7 @@ public class Mozi {
 					seged=egySor.split(";");
 					filmCimek[t]=seged[0];
 					jegyArak[t]=Integer.parseInt(seged[1]);
+					fID[t]=Integer.parseInt(seged[2]);
 					egySor=fajl1.readLine();
 					t++;
 				}
@@ -217,11 +235,12 @@ public class Mozi {
 			egySor=fajl.readLine(); // első terem adatainak beolvasása
 			while (egySor!=null) {
 				seged=egySor.split(";");
-				teremSzekek = new int[seged.length-1]; //Kell egy tömb, amiben eltároljuk melyik sorban hány szék van
-				for (int i=0;i<seged.length-1;i++) // Feltöltjük a tömböt, amiben a székek számával (soronként), utolsó elem a terem neve ezért length-1
+				teremSzekek = new int[seged.length-2]; //Kell egy tömb, amiben eltároljuk melyik sorban hány szék van
+				//Feltöltjük a tömböt, amiben a székek számával (soronként), utolsó két elem a terem neve és ID-ja ezért length-3
+				for (int i=0;i<seged.length-2;i++) 
 					teremSzekek[i]=Integer.parseInt(seged[i]);
 				//Minden adat megvan, létrehozzunk az adott termet
-				moziTermek[t]= new Terem(teremSorok[t],teremSzekek,seged[seged.length-1],jegyArak[t],filmCimek[t]);
+				moziTermek[t]= new Terem(teremSorok[t],teremSzekek,seged[seged.length-2],jegyArak[t],filmCimek[t],Integer.parseInt(seged[seged.length-1]),fID[t]); 
 				egySor=fajl.readLine(); 
 				t++;
 			}
@@ -645,6 +664,16 @@ public class Mozi {
 	      return szoveg;
 	   else
 	      return szoveg.substring(0,db-1);
+	}
+	
+	static void napimentes() {
+	   System.out.println("Napi mentés megírásra vár!");
+	   extra.Console.pressEnter();
+	   //Létrehozunk egy Napimentes+dátum+időpont fájlt, amiben eltároljuk minden napra a TeremID, FilmID
+	   //Teremnév, Filmnév, Eladott db, Üres hely, és Jegyár adatokat.
+	   //Kérdés, hogy naponta egy-egy fájl készüljön, vagy legyen egy dátum mező inkább?->Collections?
+	   //How filter arraylist in Java?
+	   
 	}
 	
 } // class Mozi

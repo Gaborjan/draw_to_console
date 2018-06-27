@@ -25,6 +25,7 @@ public class Mozi {
 	static final String FAJLMUVELETEK[] = {"1. Műsorbetöltés", "2. Foglalások kimentése","3. Foglalások betöltése","4. Napi mentés","0. FŐMENÜ"};
 	static boolean inicializalasOk = false; //Akkor lesz igaz, ha a létrehozzuk a termeket a mozi_betolt eljárással;
 	static double kezKtg=0.1; // Lemondásnál ennyi kezelési költséget vonunk le a lemondott jegyek árából
+	static boolean napiMentesVolt=false;
 		
 	public static void main(String[] args) {
 		int menuP=0;
@@ -99,12 +100,23 @@ public class Mozi {
    				} // fájlműveletek case ág
    			case 2: // Főmenü/Foglalás
    			{	
-   				if (inicializalasOk ) {
+   				if (inicializalasOk && !napiMentesVolt) {
    				   foglalas();
  					}
 					else
 					{
-						System.out.println("Még nem történt meg a műsorbetöltés, a termek nincsenek létrehozva, nem indítható foglalás!");
+						if (!inicializalasOk) {  
+							System.out.println("*******************************************************************************************");
+							System.out.println("Még nem történt meg a műsorbetöltés, a termek nincsenek létrehozva, nem indítható foglalás!");
+							System.out.println("*******************************************************************************************");
+						}
+						else
+							{
+							hibaUzenet("Már volt napimentés, ezért újabb foglalás már nem lehetséges, az adatok lezárásra kerültek!",true);
+							//System.out.println("*******************************************************************************************");
+							//System.out.println("Már volt napimentés, ezért újabb foglalás már nem lehetséges, az adatok lezárásra kerültek!");
+							//System.out.println("*******************************************************************************************");
+							}
 						extra.Console.pressEnter();
 					}
    				menuP=99;
@@ -657,6 +669,78 @@ public class Mozi {
 	   extra.Console.pressEnter();
 	}
 	
+		
+	static void napimentes() {
+	   //Létrehozunk egy Napimentes+dátum+időpont fájlt, amiben eltároljuk minden napra a TeremID, FilmID
+	   //Teremnév, Filmnév, Eladott db, Üres hely, és Jegyár adatokat.
+	   //Kérdés, hogy naponta egy-egy fájl készüljön, vagy legyen egy dátum mező inkább?->Collections?
+	   //How filter arraylist in Java?
+	   Calendar c = Calendar.getInstance();
+	   DateFormat df = DateFormat.getDateTimeInstance(DateFormat.LONG,DateFormat.MEDIUM, Locale.getDefault());
+	   String ev, honapSzoveg;
+	   int honap=0,nap=0;
+	   String fajlNev="";
+	   String egySor;
+	   String h="",n="";
+	   char mehet;
+	   System.out.println("*******************************************************************");
+	   System.out.println("FIGYELEM! A napi mentést csak akkor végezze el, ha már nem szeretne");
+	   System.out.println("semmilyen műveletet végezni!");
+	   System.out.println("********************************************************************");
+	   do { 
+         mehet=extra.Console.readChar("Biztos elvégzi a napi mentést? <I>gen <N>em ");
+         mehet=Character.toUpperCase(mehet);
+      } while (mehet!='N' && mehet!='I');
+	   if (mehet=='I') {
+   	   df.format(c.getTime());
+   	   ev=c.get(Calendar.YEAR)+"";
+   	   honap=c.get(Calendar.MONTH);
+   	   nap=c.get(Calendar.DAY_OF_MONTH);
+   	   honapSzoveg=c.getDisplayName(Calendar.MONTH,Calendar.LONG, Locale.getDefault());
+   	   honap++;
+   	   if (honap<=9) 
+   	   	h="0"+String.valueOf(honap);
+   	   else
+   	   	h=String.valueOf(honap);
+   	   if (nap<=9) 
+   	   	n="0"+String.valueOf(nap);
+   	   else
+   	   	n=String.valueOf(nap);
+   	   fajlNev=fajlNev.concat("NAPI_MENTÉS_"+ev+"_"+honapSzoveg.toUpperCase()+".csv");
+   	   try {
+   	   	RandomAccessFile fajl = new RandomAccessFile(fajlNev,"rw");
+   	   	fajl.seek(fajl.length());
+   	   	for (int i=0;i<moziTermek.length;i++) {
+   	   		egySor=ev+h+n+";"+moziTermek[i].getTeremID()+";"+moziTermek[i].getTeremNev()+";"+moziTermek[i].getFilmID()+";"+moziTermek[i].getFilmCim()+
+   	   				";"+moziTermek[i].getFoglalt()+";"+moziTermek[i].getSzabad()+";"+moziTermek[i].getJegyAr()+"\n";
+   	   		fajl.writeBytes(egySor);
+   	   		System.out.println(egySor);
+   	   		egySor="";
+   	   	}
+   	   	fajl.close();
+   	   	System.out.println();
+   	   	System.out.println("---------------------------------");
+   	   	System.out.println("A napimentés sikeresen elkészült!");
+   	   	System.out.println("---------------------------------");
+   	   	System.out.println();
+   	   	extra.Console.pressEnter();
+   	   	napiMentesVolt=true;
+   	   }
+   	   catch (IOException e ) {
+   			System.out.println("A megadott fájlt nem sikerült megnyitni!");
+   		}
+	   } //Biztos volt benne, hogy elvégzi a mentés
+	   else {
+	   	System.out.println();
+	   	System.out.println("------------------------------");
+	   	System.out.println("A napi mentés nem történt meg.");
+	   	System.out.println("------------------------------");
+	   	System.out.println();
+	   	extra.Console.pressEnter();
+	   }
+   	   	
+	} // napimentes
+	
 	//A metódus a paraméterként kapott sztring 0. karakterétől számított db hosszúságú sztringet
 	//ad vissza. Ha a sztring rövidebb, mint a megadott db, akkor az egész stzringet visszaadja.
 	static String levag(String szoveg, int db) {
@@ -664,16 +748,23 @@ public class Mozi {
 	      return szoveg;
 	   else
 	      return szoveg.substring(0,db-1);
+	} //levag metódus
+		
+	//A metódus a paraméterként kapott sztringet kiírja, előtte egy csillagokból álló sor van, azelőtt
+	//egy üres sor. Az üzenet mögött csillagokból álló sor van, utána egy üres sor
+	//Ha enter igaz Enter leütésre vár
+	static void hibaUzenet(String uzenet, boolean enter) {
+		System.out.println();
+		for (int i=1;i<=uzenet.length();i++)
+			System.out.print("*");
+		System.out.println();
+		System.out.println(uzenet);
+		for (int i=1;i<=uzenet.length();i++)
+			System.out.print("*");
+		System.out.println();
+		System.out.println();
+		if (enter)
+			extra.Console.pressEnter();
 	}
-	
-	static void napimentes() {
-	   System.out.println("Napi mentés megírásra vár!");
-	   extra.Console.pressEnter();
-	   //Létrehozunk egy Napimentes+dátum+időpont fájlt, amiben eltároljuk minden napra a TeremID, FilmID
-	   //Teremnév, Filmnév, Eladott db, Üres hely, és Jegyár adatokat.
-	   //Kérdés, hogy naponta egy-egy fájl készüljön, vagy legyen egy dátum mező inkább?->Collections?
-	   //How filter arraylist in Java?
-	   
-	}
-	
+		
 } // class Mozi

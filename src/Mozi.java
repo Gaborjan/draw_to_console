@@ -21,8 +21,11 @@ import extra.*;
 
 public class Mozi {
 	static Terem[] moziTermek; //Ebben a tömbben tároljuk a mozitermeket
-	static final String FOMENUPONTOK[] = {"1. Fájlműveletek","2. Foglalás","3. Lemondás","4. Teremállapot","5. Bevételi adatok","0. Program vége"};
+	static final String FOMENUPONTOK[] = {"1. Fájlműveletek","2. Foglalás","3. Lemondás","4. Teremállapot","5. Bevételi adatok","6. Statisztikák","0. Program vége"};
 	static final String FAJLMUVELETEK[] = {"1. Műsorbetöltés", "2. Foglalások kimentése","3. Foglalások betöltése","4. Napi mentés","0. FŐMENÜ"};
+	static final String STATISZTIKAK[] = {"1. Terem kihasználtság","2. Terembevétel","3. Összbevétel (havi)","4. Filmnézettség","5. Filmbevétel","6. Film helykihasználtság","0. FŐMENÜ"};
+	static final char HIBA_UZ_MINTA='*';
+	static final char TAJ_UZ_MINTA='-';
 	static boolean inicializalasOk = false; //Akkor lesz igaz, ha a létrehozzuk a termeket a mozi_betolt eljárással;
 	static double kezKtg=0.1; // Lemondásnál ennyi kezelési költséget vonunk le a lemondott jegyek árából
 	static boolean napiMentesVolt=false;
@@ -34,7 +37,7 @@ public class Mozi {
 		mozi_betolt();
 		inicializalasOk=true;
 		do {
-			menuP=Menu.egyszeruMenu("Főmenü",FOMENUPONTOK, 6);
+			menuP=Menu.egyszeruMenu("Főmenü",FOMENUPONTOK, 7);
 			switch (menuP) {
    			case 1: //Főmenü/Fájlműveletek
    				{
@@ -113,10 +116,7 @@ public class Mozi {
 						else
 							{
 							hibaUzenet("Már volt napimentés, ezért újabb foglalás már nem lehetséges, az adatok lezárásra kerültek!",true);
-							//System.out.println("*******************************************************************************************");
-							//System.out.println("Már volt napimentés, ezért újabb foglalás már nem lehetséges, az adatok lezárásra kerültek!");
-							//System.out.println("*******************************************************************************************");
-							}
+						}
 						extra.Console.pressEnter();
 					}
    				menuP=99;
@@ -161,6 +161,48 @@ public class Mozi {
                }
                break;  
    			}// Bevételi adatok case ág
+   			case 6: //Főmenü/Statisztikák
+   			{
+   			   do {
+   			      menuP=Menu.egyszeruMenu(FOMENUPONTOK[5].substring(3, FOMENUPONTOK[5].length()),STATISZTIKAK, 7);
+   			      switch (menuP) {
+                     case 1: // Statisztikak/Terem kihasználtság
+                     {
+                        if (inicializalasOk) {
+                           terem_kihasznaltsag();
+                           menuP=99;
+                        }
+                        else
+                        {
+                           hibaUzenet("Még nem történt meg a műsorbetöltés, a termek nincsenek létrehozva, bevételi adatok nem jeleníthetőek meg!",true);
+                        }
+                        break;
+                     }
+                     case 2: // 
+                     {
+                        break;
+                     }
+                     case 3: // 
+                     { 
+                        break; 
+                     }
+                     case 4: 
+                     { //
+                        break;
+                     }
+                     case 5: 
+                     {
+                        break;
+                     }
+                     case 6: 
+                     {
+                        break;
+                     }
+               } //Statisztikák switch
+            } while (menuP!=0); //Amíg a Statisztikákból nem lépünk ki
+            menuP=99; // Így nem lépünk ki a Főmenűből
+            break;
+   			}//Statisztikák case ág
 			} //fomenu switch
 		} while (menuP!=0); 
 		System.out.println("PROGRAM VÉGE");
@@ -740,6 +782,63 @@ public class Mozi {
 	   }
    	   	
 	} // napimentes
+
+	static void terem_kihasznaltsag() {
+	   String egySor="";
+	   String fajlNev="NAPI_MENTÉS_2018_JÚNIUS.csv";
+	   
+	   try {
+	      //fajlNev=extra.Console.readLine("Kérem a fájl nevét, amelyből a teremkihasználtságot előállítsam (napi mentés fájl): ");
+	      RandomAccessFile fajl = new RandomAccessFile(fajlNev,"r");
+	      egySor=fajl.readLine();
+	      ArrayList<String> napiMentesSorok = new ArrayList<String>(); //A fájl sorait ebbe olvassuk be
+	      TreeMap<Integer,String> termek = new TreeMap<Integer,String>(); //Ide gyüjtjük ki a termeket
+	      TreeMap<Integer,Integer> foglalt = new TreeMap<Integer,Integer>();
+	      Integer[][] foglaltsag; 
+	      
+	      String[] seged = new String[8]; // egy napi mentés sor elemit ide tördeljük szét
+	      
+         while (egySor!=null) {
+            napiMentesSorok.add(egySor);
+            egySor=fajl.readLine();
+         }
+         fajl.close();
+         for (int i=0;i<napiMentesSorok.size();i++)
+            System.out.println(napiMentesSorok.get(i));
+         for (int i=0;i<napiMentesSorok.size();i++) {
+            seged=napiMentesSorok.get(i).split(";");
+            if (!termek.containsKey(Integer.valueOf(seged[1]))) { 
+                  termek.put(Integer.valueOf(seged[1]),seged[2]);
+                  foglalt.put(Integer.valueOf(seged[1]), 0);
+            }
+         }
+         System.out.println(termek);
+         foglaltsag= new Integer[termek.size()][2];
+         for (int i=0;i<termek.size();i++)
+            for (int j=0;j<2;j++)
+                foglaltsag[i][j]=0;
+         for (int i=0;i<napiMentesSorok.size();i++) {
+            seged=napiMentesSorok.get(i).split(";");
+            //foglaltsag[Integer.valueOf(seged[1])-1][0]+=Integer.valueOf(seged[5]);
+            //foglaltsag[Integer.valueOf(seged[1])-1][1]+=Integer.valueOf(seged[6]);
+            foglalt.put(Integer.valueOf(seged[1]), foglalt.get(Integer.valueOf(seged[1]))+(Integer.valueOf(seged[5])));
+         }
+         System.out.println("T E R E M      K I H A S Z N Á L T S Á G");
+         System.out.println("----------------------------------------");
+         for (Map.Entry elem: termek.entrySet()) 
+            System.out.println(termek.get(elem.getKey())+"     "+foglalt.get(elem.getKey()));
+            //System.out.printf("%-30s  Foglalt: %,6d     Szabad: %,6d",termek.get(i+1),foglaltsag[i][0],foglaltsag[i][1]);
+            //System.out.printf("  Kihasználtság: %,3.2f %%", ( foglaltsag[i][0] +0.0)/( foglaltsag[i][0]+foglaltsag[i][1] )*100);
+           
+         
+         
+         
+      } //try
+      catch (IOException e ) {
+         hibaUzenet("A megadott fájlt nem sikerült megnyitni!", true);
+      }   
+	} // terem_kihasznaltsag metódus
+	
 	
 	//A metódus a paraméterként kapott sztring 0. karakterétől számított db hosszúságú sztringet
 	//ad vissza. Ha a sztring rövidebb, mint a megadott db, akkor az egész stzringet visszaadja.
@@ -750,21 +849,32 @@ public class Mozi {
 	      return szoveg.substring(0,db-1);
 	} //levag metódus
 		
-	//A metódus a paraméterként kapott sztringet kiírja, előtte egy csillagokból álló sor van, azelőtt
-	//egy üres sor. Az üzenet mögött csillagokból álló sor van, utána egy üres sor
+	//A metódus a paraméterként kapott sztringet kiírja, előtte egy HIBA_UZ_MINTA karakterből álló sor van, azelőtt
+	//egy üres sor. Az üzenet mögött HIBA_UZ_MINTA álló sor van, utána egy üres sor
 	//Ha enter igaz Enter leütésre vár
 	static void hibaUzenet(String uzenet, boolean enter) {
-		System.out.println();
-		for (int i=1;i<=uzenet.length();i++)
-			System.out.print("*");
-		System.out.println();
-		System.out.println(uzenet);
-		for (int i=1;i<=uzenet.length();i++)
-			System.out.print("*");
-		System.out.println();
-		System.out.println();
-		if (enter)
-			extra.Console.pressEnter();
+		uzenet(uzenet,enter,HIBA_UZ_MINTA);
 	}
-		
+	
+	//A metódus a paraméterként kapott sztringet kiírja, előtte egy TAJ_UZ_MINTA karakterből álló sor van, azelőtt
+   //egy üres sor. Az üzenet mögött TAJ_UZ_MINTA álló sor van, utána egy üres sor
+   //Ha enter igaz Enter leütésre vár
+	static void tajUzenet(String uzenet, boolean enter) {
+	   uzenet(uzenet,enter,TAJ_UZ_MINTA);
+	}
+	
+	static void uzenet(String uzenet, boolean enter, char minta) {
+	   System.out.println();
+      for (int i=1;i<=uzenet.length();i++)
+         System.out.print(minta);
+      System.out.println();
+      System.out.println(uzenet);
+      for (int i=1;i<=uzenet.length();i++)
+         System.out.print(minta);
+      System.out.println();
+      System.out.println();
+      if (enter)
+         extra.Console.pressEnter();
+	}
+	
 } // class Mozi

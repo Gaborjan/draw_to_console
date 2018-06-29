@@ -21,9 +21,9 @@ import extra.*;
 
 public class Mozi {
 	static Terem[] moziTermek; //Ebben a tömbben tároljuk a mozitermeket
-	static final String FOMENUPONTOK[] = {"1. Fájlműveletek","2. Foglalás","3. Lemondás","4. Teremállapot","5. Bevételi adatok","6. Statisztikák","0. Program vége"};
+	static final String FOMENUPONTOK[] = {"1. Fájlműveletek","2. Foglalás","3. Lemondás","4. Teremállapot","5. Napi bevétel","6. Havi statisztikák","0. Program vége"};
 	static final String FAJLMUVELETEK[] = {"1. Műsorbetöltés", "2. Foglalások kimentése","3. Foglalások betöltése","4. Napi mentés","0. FŐMENÜ"};
-	static final String STATISZTIKAK[] = {"1. Terem kihasználtság","2. Terembevétel","3. Összbevétel (havi)","4. Filmnézettség","5. Filmbevétel","6. Film helykihasználtság","0. FŐMENÜ"};
+	static final String STATISZTIKAK[] = {"1. Terem kihasználtság","2. Terembevétel","3. Bevétel","4. Filmnézettség","5. Filmbevétel","6. Film helykihasználtság","0. FŐMENÜ"};
 	static final char HIBA_UZ_MINTA='*';
 	static final char TAJ_UZ_MINTA='-';
 	static boolean inicializalasOk = false; //Akkor lesz igaz, ha a létrehozzuk a termeket a mozi_betolt eljárással;
@@ -148,7 +148,7 @@ public class Mozi {
    				}
    				break;
    			} //Teremállapot case ág
-   			case 5: //Főmenű/Bevételi adatok
+   			case 5: //Főmenű/Napi bevétel
    			{
    			   if (inicializalasOk) {
                   beveteli_adatok();
@@ -683,7 +683,7 @@ public class Mozi {
 	   Calendar c = Calendar.getInstance();
 	   DateFormat df = DateFormat.getDateTimeInstance(DateFormat.LONG,DateFormat.MEDIUM, Locale.getDefault());
 	   
-	   bevetel.keret(bsor, 100, 'D', false, " B E V É T E L I       A D A T O K    "+df.format(c.getTime())+" ");
+	   bevetel.keret(bsor, 100, 'D', false, " N A P I      B E V É T E L    "+df.format(c.getTime())+" ");
 	   //Fejléc készítése
 	   bevetel.irXY(2, 2, "Ssz.");
 	   bevetel.irXY(2, 7, "Terem");
@@ -786,50 +786,105 @@ public class Mozi {
 	static void terem_kihasznaltsag() {
 	   String egySor="";
 	   String fajlNev="NAPI_MENTÉS_2018_JÚNIUS.csv";
+	   ArrayList<String> napiMentesSorok = new ArrayList<String>(); //A fájl sorait ebbe olvassuk be
+      TreeMap<Integer, String[]> termek = new TreeMap<Integer, String[]>(); //Az integer a teremID, a String tömbbe pedig a terem nevét
+      //a foglalt és a szabad helyeket tároljuk el
+      String[] seged = new String[8]; // egy napi mentés sor elemit ide tördeljük szét
+      int f,sz,t,j; // segédváltozók
+      String teremNev; //segeédváltozó kiíráshoz
+      String evHo=""; // Melyik év melyik hónapról van szó, kiíráshoz kell
+      int of=0,osz=0; //Osszes eladott, osszes ures hely
+      int oh=0; //osszes hely
 	   
 	   try {
 	      //fajlNev=extra.Console.readLine("Kérem a fájl nevét, amelyből a teremkihasználtságot előállítsam (napi mentés fájl): ");
 	      RandomAccessFile fajl = new RandomAccessFile(fajlNev,"r");
 	      egySor=fajl.readLine();
-	      ArrayList<String> napiMentesSorok = new ArrayList<String>(); //A fájl sorait ebbe olvassuk be
-	      TreeMap<Integer,String> termek = new TreeMap<Integer,String>(); //Ide gyüjtjük ki a termeket
-	      TreeMap<Integer,Integer> foglalt = new TreeMap<Integer,Integer>();
-	      Integer[][] foglaltsag; 
-	      
-	      String[] seged = new String[8]; // egy napi mentés sor elemit ide tördeljük szét
-	      
-         while (egySor!=null) {
+	      while (egySor!=null) { // Betöltjük a napimentés fájl összes sorát
             napiMentesSorok.add(egySor);
             egySor=fajl.readLine();
          }
          fajl.close();
-         for (int i=0;i<napiMentesSorok.size();i++)
-            System.out.println(napiMentesSorok.get(i));
-         for (int i=0;i<napiMentesSorok.size();i++) {
-            seged=napiMentesSorok.get(i).split(";");
-            if (!termek.containsKey(Integer.valueOf(seged[1]))) { 
-                  termek.put(Integer.valueOf(seged[1]),seged[2]);
-                  foglalt.put(Integer.valueOf(seged[1]), 0);
+         
+         seged=napiMentesSorok.get(0).split(";");
+         evHo=seged[0].substring(0,4)+". "+honap(Integer.valueOf(seged[0].substring(5,6)));
+         
+         for (int i=0;i<napiMentesSorok.size();i++) { //A fájl sorokból kigyűjtjük a termeket
+            seged=napiMentesSorok.get(i).split(";"); //Aktuális sor darabolása
+            if (!termek.containsKey(Integer.valueOf(seged[1]))) { // Ha még nem volt ilyen terem ID
+                  termek.put(Integer.valueOf(seged[1]), new String[3]); // Új ID-jú terem, kulcs a teremID, 3 elemű tömb kell
+                  termek.get(Integer.valueOf(seged[1]))[0]=seged[2]; //A tömb első eleme a teremnév
+                  termek.get(Integer.valueOf(seged[1]))[1]="0"; //A tömb második eleme a foglalt helyek száma
+                  termek.get(Integer.valueOf(seged[1]))[2]="0"; // A tömb harmadik eleme a szabad helyek száma
             }
          }
-         System.out.println(termek);
-         foglaltsag= new Integer[termek.size()][2];
-         for (int i=0;i<termek.size();i++)
-            for (int j=0;j<2;j++)
-                foglaltsag[i][j]=0;
+         /* Kb. ilyen eredmény áll elő
+           	1     [JÁVOR PÁL TEREM, 0, 5]
+				2     [JOHN WILLIAMS TEREM, 0, 0]
+				3     [KARÁDY KATALIN TEREM, 0, 0]
+				5     [KAMARATEREM, 0, 0]
+				8     [CHAPLIN TEREM, 0, 0]
+           for (Map.Entry <Integer, String[]> elem: termek.entrySet()) 
+          		System.out.println(elem.getKey()+"     "+Arrays.asList(elem.getValue()));
+          */
+	      int bsor = 8+termek.size(); // Ennyi sora lesz a képernyőnek
+		   Kijelzo teremF = new Kijelzo(bsor, 100); //Létrehozzunk a képernyőt
+		   
+         //Végigmegyünk ismét a sorokon és kigyűjtjük melyik teremben mennyi foglalt és szabad hely volt
          for (int i=0;i<napiMentesSorok.size();i++) {
-            seged=napiMentesSorok.get(i).split(";");
-            //foglaltsag[Integer.valueOf(seged[1])-1][0]+=Integer.valueOf(seged[5]);
-            //foglaltsag[Integer.valueOf(seged[1])-1][1]+=Integer.valueOf(seged[6]);
-            foglalt.put(Integer.valueOf(seged[1]), foglalt.get(Integer.valueOf(seged[1]))+(Integer.valueOf(seged[5])));
+         	seged=napiMentesSorok.get(i).split(";");
+         	f=Integer.valueOf(seged[5]); // foglalt helyek int-ként
+         	sz=Integer.valueOf(seged[6]); // szabad helyek int-ként
+         	t=Integer.valueOf(seged[1]); // a terem ID-ját is változóba tesszük, hgy áttekinthetőbb legyen a program
+         	of+=f;
+         	oh+=f;
+         	f=f+Integer.parseInt(termek.get(t)[1]); // Foglalt helyek számát növeljük az eddig gyűjtöttel
+         	osz+=sz;
+         	oh+=sz;
+         	sz=sz+Integer.parseInt(termek.get(t)[2]); // Szabad helyek számát növeljük az eddig gyűjtöttel
+         	termek.get(t)[1]=String.valueOf(f); // visszaírjuk a termek megfelelő indexű és tömb elemű helyére a foglaltat sztringként
+         	termek.get(t)[2]=String.valueOf(sz);// visszaírjuk a termek megfelelő indexű és tömb elemű helyére a szabadot sztringként
          }
-         System.out.println("T E R E M      K I H A S Z N Á L T S Á G");
-         System.out.println("----------------------------------------");
-         for (Map.Entry elem: termek.entrySet()) 
-            System.out.println(termek.get(elem.getKey())+"     "+foglalt.get(elem.getKey()));
+       /* A fenti ciklus után ilyesféle eredmény születik:
+       	1     [JÁVOR PÁL TEREM, 10, 1005]
+			2     [JOHN WILLIAMS TEREM, 20, 1590]
+			3     [KARÁDY KATALIN TEREM, 28, 672]
+			5     [KAMARATEREM, 32, 346]
+			8     [CHAPLIN TEREM, 12, 548]  
+        */
+      // for (Map.Entry <Integer, String[]> elem: termek.entrySet()) 
+        //  System.out.println(elem.getKey()+"     "+Arrays.asList(elem.getValue()));
+       
+         teremF.keret(bsor, 84, 'D', false, " T E R E M    K I H A S Z N Á L T S Á G   "+evHo.toUpperCase()+" ");
+         teremF.irXY(2, 3, "Terem név");
+         teremF.irXY(2, 35, "Eladott");
+         teremF.irXY(2, 47, "Üres");
+         teremF.irXY(2, 57, "Összes");
+         teremF.irXY(2, 68, "Kihasználtság");
+         j=0;
+         for (Map.Entry <Integer, String[]> elem: termek.entrySet()) {
+         	teremNev=elem.getValue()[0];
+         	f=Integer.parseInt(elem.getValue()[1]);
+         	sz=Integer.parseInt(elem.getValue()[2]);
+         	teremF.irXY(4+j, 3, String.format("%-30s", teremNev));
+         	teremF.irXY(4+j, 36, String.format("%,6d", f));
+         	teremF.irXY(4+j, 45, String.format("%,6d",sz));
+         	teremF.irXY(4+j, 57, String.format("%,6d", f+sz));
+         	teremF.irXY(4+j, 73, String.format("%,6.2f %%", ((f+0.0)/(f+sz))*100));
+         	j++;
+         }
+         teremF.sorRajzol(4+j, 3, 78, '-');
+         teremF.irXY(4+j+1, 3, "A mozi kihasználtsága :");
+         teremF.irXY(4+j+1, 36, String.format("%,6d",of));
+         teremF.irXY(4+j+1, 45, String.format("%,6d", osz));
+         teremF.irXY(4+j+1, 57, String.format("%,6d", oh));
+         teremF.irXY(4+j+1, 73, String.format("%, 6.2f %%",((of+0.0)/(of+osz))*100));
+         teremF.kiir();
+         extra.Console.pressEnter(); 
+            
             //System.out.printf("%-30s  Foglalt: %,6d     Szabad: %,6d",termek.get(i+1),foglaltsag[i][0],foglaltsag[i][1]);
             //System.out.printf("  Kihasználtság: %,3.2f %%", ( foglaltsag[i][0] +0.0)/( foglaltsag[i][0]+foglaltsag[i][1] )*100);
-           
+         
          
          
          
@@ -876,5 +931,22 @@ public class Mozi {
       if (enter)
          extra.Console.pressEnter();
 	}
-	
+	//A paraméterként kapott szám alapján visszadja a hónap nevét
+	static String honap(int h) {
+		switch (h) {
+			case 1: return "Január";
+			case 2: return "Február";
+			case 3: return "Március";
+			case 4: return "Április";
+			case 5: return "Május";
+			case 6: return "Június";
+			case 7: return "Július";
+			case 8: return "Augusztus";
+			case 9: return "Szeptember";
+			case 10: return "Október";
+			case 11: return "November";
+			case 12: return "December";
+			default: return "Hibás hónapsorszám!";
+		}
+	}
 } // class Mozi

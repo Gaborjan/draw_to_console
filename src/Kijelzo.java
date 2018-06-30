@@ -1,5 +1,6 @@
 /*Mivel a konzolra elég nehézkes a kiírás, virtuális képernyőt hozhatunk létre az osztállyal, amire a különféle metódusokkal
- * írhatunk. A virtuális kijelző tartalmát a kiír metódussal jeleníthetjük meg.
+ * írhatunk, rajzolhatunk. A virtuális kijelző tartalmát a kiír metódussal jeleníthetjük meg a konzolon.
+ * Jánvári Gábor 2018.
  */
 public class Kijelzo {
 	private static final int MAXOSZLOP	 = 200;
@@ -7,7 +8,20 @@ public class Kijelzo {
 	private char			  tartalom[][]; // A kijelző "tartalma"
 	private int				  aktSor		 = 0, aktOszlop = 0; // A képernyő kurzorának poziciója
 	private int				  kijelzoSor = 0, kijelzoOszlop = 0; // Ennyi sorból és oszlopból áll a kijelző
-
+	public static final char VS = '\u2500';
+	public static final char BFS = '\u250c';
+	public static final char JFS = '\u2510';
+	public static final char FS = '\u2502';
+	public static final char BAS = '\u2514';
+	public static final char JAS = '\u2518';
+	public static final char BFD = '\u2554';
+	public static final char JFD = '\u2557';
+	public static final char VD = '\u2550';
+	public static final char FD = '\u2551';
+	public static final char BAD = '\u255A';
+	public static final char JAD = '\u255D';
+	public static final char ARNY = '\u2591';
+	
 	public Kijelzo() {
 		
 	}
@@ -100,19 +114,7 @@ public class Kijelzo {
 	 */
 	public void keret(int sor, int oszlop, char tipus, boolean arnyek, String fejlec) {
 		// Rajzoló karakterek definiálása
-		final char BFS = '\u250c';
-		final char JFS = '\u2510';
-		final char VS = '\u2500';
-		final char FS = '\u2502';
-		final char BAS = '\u2514';
-		final char JAS = '\u2518';
-		final char BFD = '\u2554';
-		final char JFD = '\u2557';
-		final char VD = '\u2550';
-		final char FD = '\u2551';
-		final char BAD = '\u255A';
-		final char JAD = '\u255D';
-		final char ARNY = '\u2591';
+		
 		// Aktuális rajzoló karakterek, 'típus' paramétertől függően.
 		char bfA = ' ', jfA = ' ', vA = ' ', fA = ' ', jaA = ' ', baA = ' ';
 		// Rajzoló karakterek beállítása

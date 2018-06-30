@@ -1,4 +1,4 @@
-/*Moziterem rajzolására használjuk a kijelzőt, egy kijelző=egy moziterem.*/
+/*Moziterem rajzolására használjuk a Kijelző osztályt, egy kijelző példány=egy moziterem.*/
 
 public class Terem extends Kijelzo {
 	static final private int URESSOR=3; // vászon és első sor közötti sorok száma
@@ -201,5 +201,4 @@ public class Terem extends Kijelzo {
       return this.filmID;
    }
    
-} 
-
+}

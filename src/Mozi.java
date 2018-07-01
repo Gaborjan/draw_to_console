@@ -24,7 +24,8 @@
  * 3. sor: melyik teremben hány sor van
  * 4. sortól: annyi oszlop, ahány sor van, ezekben a székek száma soronként, a terem neve, a terem ID (egyszerű sorszám, feltesszük egyediek - nincs ellenőrzés)
  * mozi_musor.csv:
- * soronként: a film címe, a jegyár és a film ID -> minden filmenek egyedi ID-ja van, egyszerű sorszám, feltesszük egyediek - nincs ellenőrzés 
+ * soronként: a film címe, a jegyár és a film ID -> minden filmenek
+ *  egyedi ID-ja van, egyszerű sorszám, feltesszük egyediek - nincs ellenőrzés 
  * Feltételezzük, hogy annyi filmet adnak meg, ahány terem van, tehát termenként egy filmnek lennie kell.
  * Ha egy teremben nem játszanak semmit, akkor filmcímnek erre utaló szöveget kell megadni, ID-ja 0 (de ez sem kerül sehol ellenőrzésre). Ebben az esetben
  * felételezzük, hogy a kezelő ide nem rögzít foglalást. (Nem kerül ellenőrzésre.) 
@@ -81,7 +82,7 @@ public class Mozi {
       							break;
       						} // case 2 Foglalások kimentése
       						case 3: {// Fájlműveletek/Foglalások betöltése
-      							if (inicializalasOk) {
+      							if (inicializalasOk && !napiMentesVolt) {
       							   hibaUzenet("FIGYELEM! \nHa ezt a funkciót választja, akkor az aktuális foglalási adatok \nfelülírásra kerülnek!",false);
       								do {
                                  fBiztos=extra.Console.readChar("Biztos benne? <I>gen / <N>em ");
@@ -93,20 +94,25 @@ public class Mozi {
       								   tajUzenet("Az aktuális foglalási adatok nem kerültek felülírásra.",false);
       								}
       							}
-      							else
+      							else if (!inicializalasOk)
       							{
       								hibaUzenet("Még nem történt meg a műsorbetöltés, a termek nincsenek létrehozva, nincs hová adatot tölteni!",true);
+      							}
+      							else {
+      							   hibaUzenet("Már volt napimentés, ezért foglalási adatokat már nem lehet betölteni!",true);
       							}
       							break; 
       						} //case 3 foglalások betöltése 
       						case 4: { //Fájlműveletek/Napi mentés
-      						   if (inicializalasOk) {
+      						   if (napiMentesVolt)
+      						      hibaUzenet("Már volt napimentés, egy nap kétszer nem lehet végrehajtani a funkciót!",true);
+      						   else if (inicializalasOk) {
                               napimentes();
-                           }
-                           else
-                           {
-                              hibaUzenet("Még nem történt meg a műsorbetöltés, a termek nincsenek létrehozva, nincs mit menteni!",true);
-                           }
+                              }
+                              else
+                              {
+                                 hibaUzenet("Még nem történt meg a műsorbetöltés, a termek nincsenek létrehozva, nincs mit menteni!",true);
+                              }
                            break;
       						} //case 4 napi mentés 
    						} // fájlműveletek switch
@@ -135,12 +141,17 @@ public class Mozi {
    			} // Foglalás case 2 ág
    			case 3: // Főmenü/Lemondás
    			{
-   			   if (inicializalasOk ) {
+   			   if (inicializalasOk && !napiMentesVolt) {
                   visszavet();
                }
                else
                {
-                  hibaUzenet("Még nem történt meg a műsorbetöltés, a termek nincsenek létrehozva, nem lehet foglalást lemondani!",true);
+                  if (!inicializalasOk) {
+                     hibaUzenet("Még nem történt meg a műsorbetöltés, a termek nincsenek létrehozva, nem lehet foglalást lemondani!",true);
+                  }
+                  else { 
+                     hibaUzenet("Már volt napimentés, ezért foglalás törlés már nem lehetséges, az adatok lezárásra kerültek!",true);
+                  }
                }
                menuP=99;
                break;
@@ -199,7 +210,7 @@ public class Mozi {
    			}//Statisztikák case ág
 			} //fomenu switch
 		} while (menuP!=0); 
-		System.out.println("PROGRAM VÉGE");
+		tajUzenet("A programból való kilépés sikeres.", false);
 	} // main metódus
 	
 	
@@ -699,7 +710,7 @@ public class Mozi {
 	   String egySor;
 	   String h="",n="";
 	   char mehet;
-	   hibaUzenet("FIGYELEM! A napi mentést csak akkor végezze el, ha már nem szeretne semmilyen műveletet végezni!", false);
+	   hibaUzenet("FIGYELEM! A napi mentést csak akkor végezze el, ha már nem szeretne semmilyen értékesítési műveletet végezni!", false);
 	   do { 
          mehet=extra.Console.readChar("Biztos elvégzi a napi mentést? <I>gen <N>em ");
          mehet=Character.toUpperCase(mehet);
@@ -727,7 +738,6 @@ public class Mozi {
    	   		egySor=ev+h+n+";"+moziTermek[i].getTeremID()+";"+moziTermek[i].getTeremNev()+";"+moziTermek[i].getFilmID()+";"+moziTermek[i].getFilmCim()+
    	   				";"+moziTermek[i].getFoglalt()+";"+moziTermek[i].getSzabad()+";"+moziTermek[i].getJegyAr()+"\n";
    	   		fajl.writeBytes(egySor);
-   	   		System.out.println(egySor);
    	   		egySor="";
    	   	}
    	   	fajl.close();
@@ -773,100 +783,104 @@ public class Mozi {
       catch (IOException e ) {
          hibaUzenet("A megadott fájlt nem sikerült megnyitni!", true);
       }   
-      seged=napiMentesSorok.get(0).split(";");
-      evHo=seged[0].substring(0,4)+". "+honap(Integer.valueOf(seged[0].substring(5,6)));
-      
-      for (int i=0;i<napiMentesSorok.size();i++) { //A fájl sorokból kigyűjtjük a termeket és kezdőértékeket állítunk be
-         seged=napiMentesSorok.get(i).split(";"); //Aktuális sor darabolása
-         if (!termek.containsKey(Integer.valueOf(seged[1]))) { // Ha még nem volt ilyen terem ID
-               termek.put(Integer.valueOf(seged[1]), new String[4]); // Új ID-jú terem, kulcs a teremID, 3 elemű tömb kell
-               termek.get(Integer.valueOf(seged[1]))[0]=seged[2]; //A tömb első eleme a teremnév
-               termek.get(Integer.valueOf(seged[1]))[1]="0"; //A tömb második eleme a foglalt helyek száma lesz
-               termek.get(Integer.valueOf(seged[1]))[2]="0"; // A tömb harmadik eleme a szabad helyek száma lesz
-               termek.get(Integer.valueOf(seged[1]))[3]="0"; // A tömb negyedik eleme terem bevétele lesz összesítve
+      if (!napiMentesSorok.isEmpty()) {
+   	   seged=napiMentesSorok.get(0).split(";");
+         evHo=seged[0].substring(0,4)+". "+honap(Integer.valueOf(seged[0].substring(5,6)));
+         
+         for (int i=0;i<napiMentesSorok.size();i++) { //A fájl sorokból kigyűjtjük a termeket és kezdőértékeket állítunk be
+            seged=napiMentesSorok.get(i).split(";"); //Aktuális sor darabolása
+            if (!termek.containsKey(Integer.valueOf(seged[1]))) { // Ha még nem volt ilyen terem ID
+                  termek.put(Integer.valueOf(seged[1]), new String[4]); // Új ID-jú terem, kulcs a teremID, 3 elemű tömb kell
+                  termek.get(Integer.valueOf(seged[1]))[0]=seged[2]; //A tömb első eleme a teremnév
+                  termek.get(Integer.valueOf(seged[1]))[1]="0"; //A tömb második eleme a foglalt helyek száma lesz
+                  termek.get(Integer.valueOf(seged[1]))[2]="0"; // A tömb harmadik eleme a szabad helyek száma lesz
+                  termek.get(Integer.valueOf(seged[1]))[3]="0"; // A tömb negyedik eleme terem bevétele lesz összesítve
+            }
          }
-      }
-      /* Kb. ilyen eredmény áll elő
-        	1     [JÁVOR PÁL TEREM, 0, 5]
-	      2     [JOHN WILLIAMS TEREM, 0, 0]
-	      3     [KARÁDY KATALIN TEREM, 0, 0]
-	      5     [KAMARATEREM, 0, 0]
-	      8     [CHAPLIN TEREM, 0, 0]
-        for (Map.Entry <Integer, String[]> elem: termek.entrySet()) 
-       		System.out.println(elem.getKey()+"     "+Arrays.asList(elem.getValue()));
-       */
-      int bsor = 8+termek.size(); // Ennyi sora lesz a képernyőnek
-      Kijelzo teremF = new Kijelzo(bsor, 100); //Létrehozzunk a képernyőt
-  
-      //Végigmegyünk ismét a sorokon és kigyűjtjük melyik teremben mennyi foglalt és szabad hely volt
-      for (int i=0;i<napiMentesSorok.size();i++) {
-         seged=napiMentesSorok.get(i).split(";");
-         ja=Integer.valueOf(seged[7]); //jegyár ja-ba
-         f=Integer.valueOf(seged[5]); // foglalt helyek int-ként
-      	ob=f*ja; // terembevétel=foglalt hely * jegyár
-      	sz=Integer.valueOf(seged[6]); // szabad helyek int-ként
-      	t=Integer.valueOf(seged[1]); // a terem ID-ját is változóba tesszük, hgy áttekinthetőbb legyen a program
-      	of+=f;
-      	oh+=f;
-      	f=f+Integer.parseInt(termek.get(t)[1]); // Foglalt helyek számát növeljük az eddig gyűjtöttel
-      	osz+=sz;
-      	oh+=sz;
-      	sz=sz+Integer.parseInt(termek.get(t)[2]); // Szabad helyek számát növeljük az eddig gyűjtöttel
-      	termek.get(t)[1]=String.valueOf(f); // visszaírjuk a termek megfelelő indexű és tömb elemű helyére a foglaltat sztringként
-      	termek.get(t)[2]=String.valueOf(sz);// visszaírjuk a termek megfelelő indexű és tömb elemű helyére a szabadot sztringként
-      	ob=ob+Integer.parseInt(termek.get(t)[3]); //az eddig tárolt bevételhez hosszáadjuk az aktuálisan számoltat
-      	termek.get(t)[3]=String.valueOf(ob); // visszatesszuk stringként a bevétel értéket
-      	
-      } //for
-      /* A fenti ciklus után ilyesféle eredmény születik:
-    	1     [JÁVOR PÁL TEREM, 10, 1005]
-      2     [JOHN WILLIAMS TEREM, 20, 1590]
-      3     [KARÁDY KATALIN TEREM, 28, 672]
-      5     [KAMARATEREM, 32, 346]
-      8     [CHAPLIN TEREM, 12, 548]  
-      */
-      // for (Map.Entry <Integer, String[]> elem: termek.entrySet()) 
-      //  System.out.println(elem.getKey()+"     "+Arrays.asList(elem.getValue()));
-      // Előállítjuk a statisztika megjelenítésére szolgáló képernyőt
-      teremF.keret(bsor, 97, 'D', false, " T E R E M    K I H A S Z N Á L T S Á G   "+evHo.toUpperCase()+" ");
-      teremF.irXY(2, 3, "Terem név");
-      teremF.oszlopRajzol(36, 2, Kijelzo.FS, termek.size()+4);
-      teremF.irXY(2, 38, "Eladott");      
-      teremF.oszlopRajzol(46, 2, Kijelzo.FS, termek.size()+4);
-      teremF.irXY(2, 51, "Üres");
-      teremF.oszlopRajzol(56, 2, Kijelzo.FS, termek.size()+4);
-      teremF.irXY(2, 59, "Összes");
-      teremF.oszlopRajzol(66, 2, Kijelzo.FS, termek.size()+4);
-      teremF.irXY(2, 68, "Nézettség");
-      teremF.oszlopRajzol(78, 2, Kijelzo.FS, termek.size()+4);
-      teremF.irXY(2, 87, "Bevétel");
-      teremF.sorRajzol(3, 3, 91, '-');
-      j=0;
-      //Végiglépkedünk a termek elemein és az adatok kitesszük a képernyőre
-      for (Map.Entry <Integer, String[]> elem: termek.entrySet()) {
-      	teremNev=elem.getValue()[0];
-      	f=Integer.parseInt(elem.getValue()[1]); // Foglalt (eladott) helyek száma, integerré alakítva számoláshoz
-      	sz=Integer.parseInt(elem.getValue()[2]); // Szabad helyek száma, int-é alakítva számoláshoz
-      	ob=Integer.parseInt(elem.getValue()[3]);
-      	mb+=ob;
-      	teremF.irXY(4+j, 3, String.format("%-30s", levag(teremNev,30)));
-      	teremF.irXY(4+j, 39, String.format("%,6d", f));
-      	teremF.irXY(4+j, 49, String.format("%,6d",sz));
-      	teremF.irXY(4+j, 59, String.format("%,6d", f+sz)); // Összes hely száma
-      	teremF.irXY(4+j, 69, String.format("%,6.2f %%", ((f+0.0)/(f+sz))*100)); //Kihasználtság számítása/kiírása
-      	teremF.irXY(4+j, 81, String.format("%,10d Ft", ob));
-      	j++;
-      } // for
-      //Összesítő sor kiírása
-      teremF.sorRajzol(4+j, 3, 91, '-');
-      teremF.irXY(4+j+1, 3, "A mozi kihasználts./össz. bevétel:");
-      teremF.irXY(4+j+1, 39, String.format("%,6d",of));
-      teremF.irXY(4+j+1, 49, String.format("%,6d", osz));
-      teremF.irXY(4+j+1, 59, String.format("%,6d", oh));
-      teremF.irXY(4+j+1, 69, String.format("%, 6.2f %%",((of+0.0)/(of+osz))*100));
-      teremF.irXY(4+j+1, 81, String.format("%,10d Ft", mb));
-      teremF.kiir(); // A képernyő megjelenítése konzolon
-      extra.Console.pressEnter(); 
+         /* Kb. ilyen eredmény áll elő
+           	1     [JÁVOR PÁL TEREM, 0, 5]
+   	      2     [JOHN WILLIAMS TEREM, 0, 0]
+   	      3     [KARÁDY KATALIN TEREM, 0, 0]
+   	      5     [KAMARATEREM, 0, 0]
+   	      8     [CHAPLIN TEREM, 0, 0]
+           for (Map.Entry <Integer, String[]> elem: termek.entrySet()) 
+          		System.out.println(elem.getKey()+"     "+Arrays.asList(elem.getValue()));
+          */
+         int bsor = 8+termek.size(); // Ennyi sora lesz a képernyőnek
+         Kijelzo teremF = new Kijelzo(bsor, 100); //Létrehozzunk a képernyőt
+     
+         //Végigmegyünk ismét a sorokon és kigyűjtjük melyik teremben mennyi foglalt és szabad hely volt
+         for (int i=0;i<napiMentesSorok.size();i++) {
+            seged=napiMentesSorok.get(i).split(";");
+            ja=Integer.valueOf(seged[7]); //jegyár ja-ba
+            f=Integer.valueOf(seged[5]); // foglalt helyek int-ként
+         	ob=f*ja; // terembevétel=foglalt hely * jegyár
+         	sz=Integer.valueOf(seged[6]); // szabad helyek int-ként
+         	t=Integer.valueOf(seged[1]); // a terem ID-ját is változóba tesszük, hgy áttekinthetőbb legyen a program
+         	of+=f;
+         	oh+=f;
+         	f=f+Integer.parseInt(termek.get(t)[1]); // Foglalt helyek számát növeljük az eddig gyűjtöttel
+         	osz+=sz;
+         	oh+=sz;
+         	sz=sz+Integer.parseInt(termek.get(t)[2]); // Szabad helyek számát növeljük az eddig gyűjtöttel
+         	termek.get(t)[1]=String.valueOf(f); // visszaírjuk a termek megfelelő indexű és tömb elemű helyére a foglaltat sztringként
+         	termek.get(t)[2]=String.valueOf(sz);// visszaírjuk a termek megfelelő indexű és tömb elemű helyére a szabadot sztringként
+         	ob=ob+Integer.parseInt(termek.get(t)[3]); //az eddig tárolt bevételhez hosszáadjuk az aktuálisan számoltat
+         	termek.get(t)[3]=String.valueOf(ob); // visszatesszuk stringként a bevétel értéket
+         	
+         } //for
+         /* A fenti ciklus után ilyesféle eredmény születik:
+       	1     [JÁVOR PÁL TEREM, 10, 1005]
+         2     [JOHN WILLIAMS TEREM, 20, 1590]
+         3     [KARÁDY KATALIN TEREM, 28, 672]
+         5     [KAMARATEREM, 32, 346]
+         8     [CHAPLIN TEREM, 12, 548]  
+         */
+         // for (Map.Entry <Integer, String[]> elem: termek.entrySet()) 
+         //  System.out.println(elem.getKey()+"     "+Arrays.asList(elem.getValue()));
+         // Előállítjuk a statisztika megjelenítésére szolgáló képernyőt
+         teremF.keret(bsor, 97, 'D', false, " T E R E M    K I H A S Z N Á L T S Á G   "+evHo.toUpperCase()+" ");
+         teremF.irXY(2, 3, "Terem név");
+         teremF.oszlopRajzol(36, 2, Kijelzo.FS, termek.size()+4);
+         teremF.irXY(2, 38, "Eladott");      
+         teremF.oszlopRajzol(46, 2, Kijelzo.FS, termek.size()+4);
+         teremF.irXY(2, 51, "Üres");
+         teremF.oszlopRajzol(56, 2, Kijelzo.FS, termek.size()+4);
+         teremF.irXY(2, 59, "Összes");
+         teremF.oszlopRajzol(66, 2, Kijelzo.FS, termek.size()+4);
+         teremF.irXY(2, 68, " Kihaszn.");
+         teremF.oszlopRajzol(78, 2, Kijelzo.FS, termek.size()+4);
+         teremF.irXY(2, 87, "Bevétel");
+         teremF.sorRajzol(3, 3, 91, '-');
+         j=0;
+         //Végiglépkedünk a termek elemein és az adatok kitesszük a képernyőre
+         for (Map.Entry <Integer, String[]> elem: termek.entrySet()) {
+         	teremNev=elem.getValue()[0];
+         	f=Integer.parseInt(elem.getValue()[1]); // Foglalt (eladott) helyek száma, integerré alakítva számoláshoz
+         	sz=Integer.parseInt(elem.getValue()[2]); // Szabad helyek száma, int-é alakítva számoláshoz
+         	ob=Integer.parseInt(elem.getValue()[3]);
+         	mb+=ob;
+         	teremF.irXY(4+j, 3, String.format("%-30s", levag(teremNev,30)));
+         	teremF.irXY(4+j, 39, String.format("%,6d", f));
+         	teremF.irXY(4+j, 49, String.format("%,6d",sz));
+         	teremF.irXY(4+j, 59, String.format("%,6d", f+sz)); // Összes hely száma
+         	teremF.irXY(4+j, 69, String.format("%,6.2f %%", ((f+0.0)/(f+sz))*100)); //Kihasználtság számítása/kiírása
+         	teremF.irXY(4+j, 81, String.format("%,10d Ft", ob));
+         	j++;
+         } // for
+         //Összesítő sor kiírása
+         teremF.sorRajzol(4+j, 3, 91, '-');
+         teremF.irXY(4+j+1, 3, "Mozi kihasználtság/össz. bevétel:");
+         teremF.irXY(4+j+1, 39, String.format("%,6d",of));
+         teremF.irXY(4+j+1, 49, String.format("%,6d", osz));
+         teremF.irXY(4+j+1, 59, String.format("%,6d", oh));
+         teremF.irXY(4+j+1, 69, String.format("%, 6.2f %%",((of+0.0)/(of+osz))*100));
+         teremF.irXY(4+j+1, 81, String.format("%,10d Ft", mb));
+         teremF.kiir(); // A képernyő megjelenítése konzolon
+         extra.Console.pressEnter();
+      } //Nem volt üres a fájl
+      else
+         hibaUzenet("A napi mentés fájl ("+fajlNev+") nem tartalmaz adatokat!",true);
 	} // terem_kihasznaltsag metódus
 	
 	static void film_nezettseg() {
@@ -898,82 +912,86 @@ public class Mozi {
       catch (IOException e ) {
          hibaUzenet("A megadott fájlt nem sikerült megnyitni!", true);
       }   
-      seged=napiMentesSorok.get(0).split(";");
-      evHo=seged[0].substring(0,4)+". "+honap(Integer.valueOf(seged[0].substring(5,6)));
-      
-      for (int i=0;i<napiMentesSorok.size();i++) { //A fájl sorokból kigyűjtjük a filmeket és kezdőértékeket állítunk be
-         seged=napiMentesSorok.get(i).split(";"); //Aktuális sor darabolása
-         if (!filmek.containsKey(Integer.valueOf(seged[3]))) { // Ha még nem volt ilyen film ID
-               filmek.put(Integer.valueOf(seged[3]), new String[4]); // Új ID-jú film, kulcs a filmID, 3 elemű tömb kell
-               filmek.get(Integer.valueOf(seged[3]))[0]=seged[4]; //A tömb első eleme a filcím
-               filmek.get(Integer.valueOf(seged[3]))[1]="0"; //A tömb második eleme a foglalt helyek száma lesz
-               filmek.get(Integer.valueOf(seged[3]))[2]="0"; // A tömb harmadik eleme a szabad helyek száma lesz
-               filmek.get(Integer.valueOf(seged[3]))[3]="0"; // A tömb negyedik eleme terem bevétele lesz összesítve
+      if (!napiMentesSorok.isEmpty() ) {
+         seged=napiMentesSorok.get(0).split(";");
+         evHo=seged[0].substring(0,4)+". "+honap(Integer.valueOf(seged[0].substring(5,6)));
+         
+         for (int i=0;i<napiMentesSorok.size();i++) { //A fájl sorokból kigyűjtjük a filmeket és kezdőértékeket állítunk be
+            seged=napiMentesSorok.get(i).split(";"); //Aktuális sor darabolása
+            if (!filmek.containsKey(Integer.valueOf(seged[3]))) { // Ha még nem volt ilyen film ID
+                  filmek.put(Integer.valueOf(seged[3]), new String[4]); // Új ID-jú film, kulcs a filmID, 3 elemű tömb kell
+                  filmek.get(Integer.valueOf(seged[3]))[0]=seged[4]; //A tömb első eleme a filcím
+                  filmek.get(Integer.valueOf(seged[3]))[1]="0"; //A tömb második eleme a foglalt helyek száma lesz
+                  filmek.get(Integer.valueOf(seged[3]))[2]="0"; // A tömb harmadik eleme a szabad helyek száma lesz
+                  filmek.get(Integer.valueOf(seged[3]))[3]="0"; // A tömb negyedik eleme terem bevétele lesz összesítve
+            }
          }
+       
+         int bsor = 8+filmek.size(); // Ennyi sora lesz a képernyőnek
+         Kijelzo teremF = new Kijelzo(bsor, 100); //Létrehozzunk a képernyőt
+     
+         //Végigmegyünk ismét a sorokon és kigyűjtjük melyik teremben mennyi foglalt és szabad hely volt
+         for (int i=0;i<napiMentesSorok.size();i++) {
+            seged=napiMentesSorok.get(i).split(";");
+            ja=Integer.valueOf(seged[7]); //jegyár ja-ba
+            f=Integer.valueOf(seged[5]); // foglalt helyek int-ként
+            fb=f*ja; // filmbevétel=foglalt hely * jegyár
+            sz=Integer.valueOf(seged[6]); // szabad helyek int-ként
+            t=Integer.valueOf(seged[3]); // a film ID-ját is változóba tesszük, hgy áttekinthetőbb legyen a program
+            of+=f;
+            oh+=f;
+            f=f+Integer.parseInt(filmek.get(t)[1]); // Foglalt helyek számát növeljük az eddig gyűjtöttel
+            osz+=sz;
+            oh+=sz;
+            sz=sz+Integer.parseInt(filmek.get(t)[2]); // Szabad helyek számát növeljük az eddig gyűjtöttel
+            filmek.get(t)[1]=String.valueOf(f); // visszaírjuk a termek megfelelő indexű és tömb elemű helyére a foglaltat sztringként
+            filmek.get(t)[2]=String.valueOf(sz);// visszaírjuk a termek megfelelő indexű és tömb elemű helyére a szabadot sztringként
+            fb=fb+Integer.parseInt(filmek.get(t)[3]); //az eddig tárolt bevételhez hosszáadjuk az aktuálisan számoltat
+            filmek.get(t)[3]=String.valueOf(fb); // visszatesszuk stringként a bevétel értéket
+          } //for
+         
+         // Előállítjuk a statisztika megjelenítésére szolgáló képernyőt
+         teremF.keret(bsor, 97, 'D', false, " F I L M    N É Z E T T S É G   "+evHo.toUpperCase()+" ");
+         teremF.irXY(2, 3, "Film cím");
+         teremF.oszlopRajzol(36, 2, Kijelzo.FS, filmek.size()+4);
+         teremF.irXY(2, 38, "Eladott");      
+         teremF.oszlopRajzol(46, 2, Kijelzo.FS, filmek.size()+4);
+         teremF.irXY(2, 51, "Üres");
+         teremF.oszlopRajzol(56, 2, Kijelzo.FS, filmek.size()+4);
+         teremF.irXY(2, 59, "Összes");
+         teremF.oszlopRajzol(66, 2, Kijelzo.FS, filmek.size()+4);
+         teremF.irXY(2, 68, "Nézettség");
+         teremF.oszlopRajzol(78, 2, Kijelzo.FS, filmek.size()+4);
+         teremF.irXY(2, 87, "Bevétel");
+         teremF.sorRajzol(3, 3, 91, '-');
+         j=0;
+         //Végiglépkedünk a termek elemein és az adatok kitesszük a képernyőre
+         for (Map.Entry <Integer, String[]> elem: filmek.entrySet()) {
+            filmNev=elem.getValue()[0];
+            f=Integer.parseInt(elem.getValue()[1]); // Foglalt (eladott) helyek száma, integerré alakítva számoláshoz
+            sz=Integer.parseInt(elem.getValue()[2]); // Szabad helyek száma, int-é alakítva számoláshoz
+            fb=Integer.parseInt(elem.getValue()[3]);
+            fbo+=fb;
+            teremF.irXY(4+j, 3, String.format("%-30s", levag(filmNev,32)));
+            teremF.irXY(4+j, 39, String.format("%,6d", f));
+            teremF.irXY(4+j, 49, String.format("%,6d",sz));
+            teremF.irXY(4+j, 59, String.format("%,6d", f+sz)); // Összes hely száma
+            teremF.irXY(4+j, 69, String.format("%,6.2f %%", ((f+0.0)/(f+sz))*100)); //Kihasználtság számítása/kiírása
+            teremF.irXY(4+j, 81, String.format("%,10d Ft", fb));
+            j++;
+         } // for
+         //Összesítő sor kiírása
+         teremF.sorRajzol(4+j, 3, 91, '-');
+         teremF.irXY(4+j+1, 3, "Film nézettség/össz. bevétel:");
+         teremF.irXY(4+j+1, 39, String.format("%,6d",of));
+         teremF.irXY(4+j+1, 49, String.format("%,6d", osz));
+         teremF.irXY(4+j+1, 59, String.format("%,6d", oh));
+         teremF.irXY(4+j+1, 69, String.format("%, 6.2f %%",((of+0.0)/(of+osz))*100));
+         teremF.irXY(4+j+1, 81, String.format("%,10d Ft", fbo));
+         teremF.kiir(); // A képernyő megjelenítése konzolon
       }
-    
-      int bsor = 8+filmek.size(); // Ennyi sora lesz a képernyőnek
-      Kijelzo teremF = new Kijelzo(bsor, 100); //Létrehozzunk a képernyőt
-  
-      //Végigmegyünk ismét a sorokon és kigyűjtjük melyik teremben mennyi foglalt és szabad hely volt
-      for (int i=0;i<napiMentesSorok.size();i++) {
-         seged=napiMentesSorok.get(i).split(";");
-         ja=Integer.valueOf(seged[7]); //jegyár ja-ba
-         f=Integer.valueOf(seged[5]); // foglalt helyek int-ként
-         fb=f*ja; // filmbevétel=foglalt hely * jegyár
-         sz=Integer.valueOf(seged[6]); // szabad helyek int-ként
-         t=Integer.valueOf(seged[3]); // a film ID-ját is változóba tesszük, hgy áttekinthetőbb legyen a program
-         of+=f;
-         oh+=f;
-         f=f+Integer.parseInt(filmek.get(t)[1]); // Foglalt helyek számát növeljük az eddig gyűjtöttel
-         osz+=sz;
-         oh+=sz;
-         sz=sz+Integer.parseInt(filmek.get(t)[2]); // Szabad helyek számát növeljük az eddig gyűjtöttel
-         filmek.get(t)[1]=String.valueOf(f); // visszaírjuk a termek megfelelő indexű és tömb elemű helyére a foglaltat sztringként
-         filmek.get(t)[2]=String.valueOf(sz);// visszaírjuk a termek megfelelő indexű és tömb elemű helyére a szabadot sztringként
-         fb=fb+Integer.parseInt(filmek.get(t)[3]); //az eddig tárolt bevételhez hosszáadjuk az aktuálisan számoltat
-         filmek.get(t)[3]=String.valueOf(fb); // visszatesszuk stringként a bevétel értéket
-       } //for
-      
-      // Előállítjuk a statisztika megjelenítésére szolgáló képernyőt
-      teremF.keret(bsor, 97, 'D', false, " F I L M    N É Z E T T S É G   "+evHo.toUpperCase()+" ");
-      teremF.irXY(2, 3, "Film cím");
-      teremF.oszlopRajzol(36, 2, Kijelzo.FS, filmek.size()+4);
-      teremF.irXY(2, 38, "Eladott");      
-      teremF.oszlopRajzol(46, 2, Kijelzo.FS, filmek.size()+4);
-      teremF.irXY(2, 51, "Üres");
-      teremF.oszlopRajzol(56, 2, Kijelzo.FS, filmek.size()+4);
-      teremF.irXY(2, 59, "Összes");
-      teremF.oszlopRajzol(66, 2, Kijelzo.FS, filmek.size()+4);
-      teremF.irXY(2, 68, "Nézettség");
-      teremF.oszlopRajzol(78, 2, Kijelzo.FS, filmek.size()+4);
-      teremF.irXY(2, 87, "Bevétel");
-      teremF.sorRajzol(3, 3, 91, '-');
-      j=0;
-      //Végiglépkedünk a termek elemein és az adatok kitesszük a képernyőre
-      for (Map.Entry <Integer, String[]> elem: filmek.entrySet()) {
-         filmNev=elem.getValue()[0];
-         f=Integer.parseInt(elem.getValue()[1]); // Foglalt (eladott) helyek száma, integerré alakítva számoláshoz
-         sz=Integer.parseInt(elem.getValue()[2]); // Szabad helyek száma, int-é alakítva számoláshoz
-         fb=Integer.parseInt(elem.getValue()[3]);
-         fbo+=fb;
-         teremF.irXY(4+j, 3, String.format("%-30s", levag(filmNev,32)));
-         teremF.irXY(4+j, 39, String.format("%,6d", f));
-         teremF.irXY(4+j, 49, String.format("%,6d",sz));
-         teremF.irXY(4+j, 59, String.format("%,6d", f+sz)); // Összes hely száma
-         teremF.irXY(4+j, 69, String.format("%,6.2f %%", ((f+0.0)/(f+sz))*100)); //Kihasználtság számítása/kiírása
-         teremF.irXY(4+j, 81, String.format("%,10d Ft", fb));
-         j++;
-      } // for
-      //Összesítő sor kiírása
-      teremF.sorRajzol(4+j, 3, 91, '-');
-      teremF.irXY(4+j+1, 3, "Film nézettség/össz. bevétel:");
-      teremF.irXY(4+j+1, 39, String.format("%,6d",of));
-      teremF.irXY(4+j+1, 49, String.format("%,6d", osz));
-      teremF.irXY(4+j+1, 59, String.format("%,6d", oh));
-      teremF.irXY(4+j+1, 69, String.format("%, 6.2f %%",((of+0.0)/(of+osz))*100));
-      teremF.irXY(4+j+1, 81, String.format("%,10d Ft", fbo));
-      teremF.kiir(); // A képernyő megjelenítése konzolon
+      else 
+         hibaUzenet("A napi mentés fájl ("+fajlNev+") nem tartalmaz adatokat!",true);
       extra.Console.pressEnter(); 
 	}
 	
